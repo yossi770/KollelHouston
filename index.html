@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kollel Tracker</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🕒</text></svg>">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #0f172a;
+            --accent: #f43f5e;
+            --surface: rgba(255, 255, 255, 0.9);
+        }
+
+        body {
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            color: var(--secondary);
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .glass-panel {
+            background: var(--surface);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.7);
+            box-shadow: 0 20px 50px -12px rgba(0, 0, 0, 0.05);
+        }
+
+        .btn-primary {
+            background: linear-gradient(to bottom right, var(--primary), var(--primary-dark));
+            box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.3);
+        }
+
+        .input-field {
+            background: rgba(255, 255, 255, 0.5);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            transition: all 0.2s ease;
+        }
+
+        .input-field:focus {
+            background: white;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate-up { animation: slideUp 0.4s cubic-bezier(0, 0, 0.2, 1) forwards; }
+
+        /* Hide arrow spinners in number inputs */
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
+    </style>
+</head>
+
+<body class="min-h-screen p-4 pb-20">
+
+    <div id="toastContainer" class="fixed top-6 left-1/2 -translate-x-1/2 z-[100] space-y-3 w-full max-w-[90%] pointer-events-none"></div>
+
+    <!-- Loading Splash Screen -->
+    <div id="splashScreen" class="fixed inset-0 bg-white/80 backdrop-blur-xl z-[200] flex flex-col items-center justify-center transition-opacity duration-500">
+        <div class="relative">
+            <div class="w-20 h-20 border-4 border-indigo-100 border-t-indigo-500 rounded-full animate-spin"></div>
+            <div class="absolute inset-0 flex items-center justify-center">
+                <i data-lucide="clock" class="w-8 h-8 text-indigo-500 animate-pulse"></i>
+            </div>
+        </div>
+        <p class="mt-6 text-sm font-bold text-slate-400 uppercase tracking-[0.3em] animate-pulse">Syncing Session</p>
+    </div>
+
+    <div id="modalOverlay" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[100] hidden flex items-center justify-center p-6">
+        <div class="bg-white w-full max-w-sm rounded-[2rem] shadow-2xl p-8 transform transition-all scale-90 opacity-0" id="modalContent">
+            <div class="text-center">
+                <div id="modalIcon" class="mx-auto flex items-center justify-center h-20 w-20 rounded-3xl bg-slate-50 text-primary mb-6">
+                    <i data-lucide="alert-circle" class="w-10 h-10"></i>
+                </div>
+                <h3 class="text-2xl font-extrabold text-slate-900 tracking-tight" id="modalTitle">Confirm</h3>
+                <p class="text-slate-500 mt-4 leading-relaxed font-medium" id="modalMessage">Message goes here.</p>
+            </div>
+            <div class="mt-10 flex gap-4">
+                <button id="modalCancelBtn" class="flex-1 px-4 py-5 text-sm font-bold text-slate-400 bg-slate-50 rounded-2xl hover:bg-slate-100 transition-all">Cancel</button>
+                <button id="modalConfirmBtn" class="flex-1 px-4 py-5 text-sm font-bold text-white btn-primary rounded-2xl transition-all">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="loginSection" class="w-full max-w-md mx-auto mt-20 p-10 glass-panel rounded-[2.5rem] animate-up hidden">
+        <div class="text-center mb-10">
+            <div class="w-20 h-20 bg-indigo-50 rounded-3xl flex items-center justify-center mx-auto mb-6">
+                <i data-lucide="clock" class="w-10 h-10 text-primary"></i>
+            </div>
+            <h1 class="text-4xl font-extrabold tracking-tight text-slate-900">Kollel Tracker</h1>
+            <p class="text-slate-400 mt-3 font-semibold uppercase tracking-widest text-[10px]">Secure Access</p>
+        </div>
+        <div class="space-y-4">
+            <input type="text" id="userNameInput" placeholder="User Name"
+                class="w-full p-5 input-field rounded-2xl text-center text-xl font-bold placeholder:text-slate-300 placeholder:font-medium">
+            <input type="password" id="passwordInput" placeholder="Password"
+                class="w-full p-5 input-field rounded-2xl text-center text-xl font-bold placeholder:text-slate-300 placeholder:font-medium">
+            <button onclick="handleLogin()" id="loginBtn"
+                class="w-full btn-primary text-white p-5 rounded-2xl font-bold text-lg flex justify-center items-center gap-3 transition-all active:scale-95">
+                <i data-lucide="user" class="w-5 h-5"></i> Login
+            </button>
+        </div>
+    </div>
+
+    <div id="dashboardSection" class="w-full max-w-md mx-auto space-y-6 hidden animate-up">
+        <div class="flex justify-between items-end px-4">
+            <div>
+                <p class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Welcome Back</p>
+                <h2 class="text-3xl font-black text-slate-900">Hello, <span id="userNameDisplay">---</span></h2>
+            </div>
+            <div class="flex gap-2">
+                <button onclick="switchTab('settings')" class="w-12 h-12 flex items-center justify-center rounded-2xl bg-white shadow-sm border border-slate-100 text-slate-400 hover:text-indigo-500 transition-all">
+                    <i data-lucide="settings" class="w-5 h-5"></i>
+                </button>
+                <button onclick="logout()" class="w-12 h-12 flex items-center justify-center rounded-2xl bg-white shadow-sm border border-slate-100 text-slate-400 hover:text-rose-500 transition-all">
+                    <i data-lucide="log-out" class="w-5 h-5"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="flex bg-white/50 p-2 rounded-[1.75rem] border border-white/60 shadow-sm relative">
+            <button onclick="switchTab('attendance')" id="tab-attendance" class="flex-1 py-3.5 text-xs font-bold rounded-2xl transition-all z-10 text-white btn-primary">Attendance</button>
+            <button onclick="switchTab('manual')" id="tab-manual" class="flex-1 py-3.5 text-xs font-bold rounded-2xl transition-all z-10 text-slate-400 hover:text-slate-600">Manual</button>
+            <button onclick="switchTab('reports')" id="tab-reports" class="flex-1 py-3.5 text-xs font-bold rounded-2xl transition-all z-10 text-slate-400 hover:text-slate-600">Reports</button>
+        </div>
+
+        <div id="attendanceSection" class="space-y-6">
+            <div class="glass-panel p-10 rounded-[3rem] text-center space-y-10 relative overflow-hidden">
+                <div class="absolute -right-20 -top-20 w-60 h-60 bg-indigo-50 rounded-full blur-3xl opacity-50"></div>
+                <div id="statusIndicator" class="inline-flex items-center gap-2.5 px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-[0.15em] bg-slate-100 text-slate-500 border border-slate-200/50">
+                    <span class="w-2 h-2 rounded-full bg-slate-400"></span> Session: Inactive
+                </div>
+                <div class="space-y-2">
+                    <div class="text-7xl font-mono font-black text-slate-900 tracking-tighter" id="timerDisplay">00:00:00</div>
+                    <p class="text-[10px] font-black text-indigo-400 uppercase tracking-widest" id="currentDate">---</p>
+                </div>
+                <div class="flex items-center justify-center gap-12 border-y border-slate-100 py-8">
+                    <div class="text-center">
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Today</p>
+                        <p class="text-xl font-black text-slate-900" id="dailyTotalDisplay">0m</p>
+                    </div>
+                    <div class="w-[1px] h-10 bg-slate-100"></div>
+                    <div class="text-center">
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Month</p>
+                        <p class="text-xl font-black text-slate-900" id="headerMonthTotal">0h</p>
+                    </div>
+                </div>
+                <div class="flex gap-4 relative z-10">
+                    <button id="startBtn" onclick="handleStart()" class="flex-1 btn-primary text-white p-6 rounded-3xl font-extrabold text-lg shadow-2xl active:scale-95 transition-all">START</button>
+                    <button id="endBtn" onclick="handleEnd()" disabled class="flex-1 bg-white text-slate-300 border border-slate-100 p-6 rounded-3xl font-extrabold text-lg shadow-sm disabled:opacity-50 active:scale-95 transition-all">STOP</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="manualSection" class="hidden glass-panel p-10 rounded-[3rem] space-y-8">
+            <div class="flex items-center gap-4">
+                <div class="w-14 h-14 bg-indigo-50 rounded-2xl flex items-center justify-center text-primary"><i data-lucide="edit-3" class="w-7 h-7"></i></div>
+                <h3 class="text-2xl font-black text-slate-900 tracking-tight" id="manualTitle">Add Entry</h3>
+            </div>
+            <div class="space-y-6">
+                <div class="space-y-2">
+                    <div class="flex justify-between items-center px-1">
+                        <label class="text-[10px] font-black uppercase tracking-widest text-slate-400">Date of Entry</label>
+                        <button onclick="document.getElementById('manualDate').blur()" class="text-[9px] font-bold text-indigo-500 uppercase tracking-tighter">Close Picker</button>
+                    </div>
+                    <input type="date" id="manualDate" onclick="this.showPicker()" onchange="this.blur()" class="w-full p-5 input-field rounded-2xl font-bold text-slate-900">
+                </div>
+                <div class="grid grid-cols-2 gap-6">
+                    <div class="space-y-2">
+                        <div class="flex justify-between items-center px-1">
+                            <label class="text-[10px] font-black uppercase tracking-widest text-slate-400">Start Time</label>
+                            <button onclick="document.getElementById('manualStart').blur()" class="text-[9px] font-bold text-indigo-500 uppercase tracking-tighter">Done</button>
+                        </div>
+                        <input type="time" id="manualStart" onclick="this.showPicker()" onchange="this.blur()" class="w-full p-5 input-field rounded-2xl font-bold text-slate-900">
+                        <div class="flex gap-1 mt-2">
+                            <button onclick="adjustTime('manualStart', -60)" class="flex-1 text-[9px] font-bold bg-slate-100 p-2 rounded-lg text-slate-500">-1h</button>
+                            <button onclick="adjustTime('manualStart', -15)" class="flex-1 text-[9px] font-bold bg-slate-100 p-2 rounded-lg text-slate-500">-15m</button>
+                            <button onclick="adjustTime('manualStart', 15)" class="flex-1 text-[9px] font-bold bg-slate-100 p-2 rounded-lg text-slate-500">+15m</button>
+                            <button onclick="adjustTime('manualStart', 60)" class="flex-1 text-[9px] font-bold bg-slate-100 p-2 rounded-lg text-slate-500">+1h</button>
+                        </div>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="flex justify-between items-center px-1">
+                            <label class="text-[10px] font-black uppercase tracking-widest text-slate-400">End Time</label>
+                            <button onclick="document.getElementById('manualEnd').blur()" class="text-[9px] font-bold text-indigo-500 uppercase tracking-tighter">Done</button>
+                        </div>
+                        <input type="time" id="manualEnd" onclick="this.showPicker()" onchange="this.blur()" class="w-full p-5 input-field rounded-2xl font-bold text-slate-900">
+                        <div class="flex gap-1 mt-2">
+                            <button onclick="adjustTime('manualEnd', -60)" class="flex-1 text-[9px] font-bold bg-slate-100 p-2 rounded-lg text-slate-500">-1h</button>
+                            <button onclick="adjustTime('manualEnd', -15)" class="flex-1 text-[9px] font-bold bg-slate-100 p-2 rounded-lg text-slate-500">-15m</button>
+                            <button onclick="adjustTime('manualEnd', 15)" class="flex-1 text-[9px] font-bold bg-slate-100 p-2 rounded-lg text-slate-500">+15m</button>
+                            <button onclick="adjustTime('manualEnd', 60)" class="flex-1 text-[9px] font-bold bg-slate-100 p-2 rounded-lg text-slate-500">+1h</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="flex gap-4 pt-4">
+                <button id="cancelEditBtn" onclick="cancelEdit()" class="flex-1 p-5 rounded-2xl font-bold text-slate-400 bg-slate-50 hover:bg-slate-100 transition-all hidden">Cancel</button>
+                <button onclick="submitManualEntry()" id="submitManualBtn" class="flex-[2] btn-primary text-white p-5 rounded-2xl font-bold shadow-xl transition-all active:scale-95">Save Entry</button>
+            </div>
+        </div>
+
+        <div id="reportsSection" class="hidden space-y-6">
+            <div class="glass-panel p-8 rounded-[2.5rem] flex flex-col gap-4">
+                <div class="flex justify-between items-center">
+                    <div class="flex flex-col">
+                        <span class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Monthly Yield</span>
+                        <h3 class="text-4xl font-black text-slate-900 mt-1" id="reportTotalHours">0.00 <span class="text-sm font-bold text-slate-400 ml-1">HRS</span></h3>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <select id="reportMonth" onchange="loadReport()" class="bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-xs font-bold text-slate-900 focus:outline-none"></select>
+                    <select id="reportYear" onchange="loadReport()" class="bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-xs font-bold text-slate-900 focus:outline-none"></select>
+                </div>
+            </div>
+            <div id="reportEntriesList" class="space-y-4"></div>
+        </div>
+
+        <div id="settingsSection" class="hidden glass-panel p-10 rounded-[3rem] space-y-8">
+            <div class="flex items-center gap-4">
+                <div class="w-14 h-14 bg-indigo-50 rounded-2xl flex items-center justify-center text-primary"><i data-lucide="user-cog" class="w-7 h-7"></i></div>
+                <h3 class="text-2xl font-black text-slate-900 tracking-tight">Profile Settings</h3>
+            </div>
+            <div class="space-y-6">
+                <div class="space-y-2">
+                    <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Login Code (ID)</label>
+                    <input type="number" id="settingId" readonly class="w-full p-5 input-field rounded-2xl font-bold text-slate-500 bg-slate-100 cursor-not-allowed opacity-60">
+                </div>
+                <div class="space-y-2">
+                    <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Display Name</label>
+                    <input type="text" id="settingName" class="w-full p-5 input-field rounded-2xl font-bold text-slate-900">
+                </div>
+                <div class="space-y-2">
+                    <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Password</label>
+                    <input type="password" id="settingPassword" class="w-full p-5 input-field rounded-2xl font-bold text-slate-900">
+                </div>
+                <button onclick="updateUserProfile()" id="updateProfileBtn" class="w-full btn-primary text-white p-5 rounded-2xl font-bold shadow-xl transition-all active:scale-95">Update Profile</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="adminSection" class="w-full max-w-lg mx-auto space-y-8 hidden animate-up">
+        <div class="flex justify-between items-center px-4">
+            <div>
+                <p class="text-[10px] font-black uppercase tracking-widest text-indigo-400">Admin Control</p>
+                <h2 class="text-3xl font-black text-slate-900">Global Overview</h2>
+            </div>
+            <button onclick="logout()" class="w-12 h-12 flex items-center justify-center rounded-2xl bg-white shadow-sm text-slate-400 hover:text-rose-500"><i data-lucide="log-out" class="w-5 h-5"></i></button>
+        </div>
+        <div class="glass-panel p-8 rounded-[2.5rem] space-y-6">
+            <div class="flex flex-col gap-6 border-b border-slate-100 pb-6">
+                <div class="flex justify-between items-center">
+                    <div class="text-right">
+                        <p class="text-[10px] font-black uppercase tracking-widest text-slate-400">Global Total</p>
+                        <p class="text-2xl font-black text-primary mt-1" id="adminGlobalTotal">0h</p>
+                    </div>
+                    <div class="flex gap-2">
+                        <select id="adminMonth" onchange="loadAdminReport()" class="bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-xs font-bold text-slate-900 focus:outline-none"></select>
+                        <select id="adminYear" onchange="loadAdminReport()" class="bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-xs font-bold text-slate-900 focus:outline-none"></select>
+                    </div>
+                </div>
+            </div>
+            <div id="adminUserList" class="space-y-4 max-h-[60vh] overflow-y-auto pr-2"></div>
+        </div>
+    </div>
+
+    <div id="adminDetailOverlay" class="fixed inset-0 bg-slate-900/10 backdrop-blur-xl z-[120] hidden flex flex-col p-6 animate-up">
+        <div class="w-full max-w-md mx-auto bg-white/80 rounded-[3rem] shadow-2xl flex-1 flex flex-col overflow-hidden border border-white">
+            <div class="p-8 border-b border-slate-100 flex justify-between items-center">
+                <div>
+                    <h4 class="text-2xl font-black text-slate-900" id="detailUserName">User Name</h4>
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest" id="detailMonth">---</p>
+                </div>
+                <button onclick="closeAdminDetail()" class="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-400"><i data-lucide="x" class="w-6 h-6"></i></button>
+            </div>
+            <div id="adminUserDetailList" class="flex-1 overflow-y-auto p-6 space-y-4"></div>
+            <div class="p-8 bg-slate-50/50 border-t border-slate-100">
+                <div class="flex justify-between items-center">
+                    <span class="text-sm font-bold text-slate-500 uppercase">Total for Month</span>
+                    <span class="text-2xl font-black text-slate-900" id="detailUserTotal">0h</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxpIm8v5F-r_uZSTl9Q_QzLyeDzrCEvnKNGDESem1IkBzAaGWV9Z4EPz2dJY16L8gGQ/exec";
+        let currentUser = null;
+        let timerInterval = null;
+        let startTime = null;
+        let isProcessing = false;
+        let editingRow = null;
+        let isAdmin = false;
+
+        window.addEventListener('DOMContentLoaded', async () => {
+            initDatePickers();
+            const savedUser = localStorage.getItem('kollel_user');
+
+            if (savedUser) {
+                currentUser = JSON.parse(savedUser);
+                if (currentUser.isAdmin) {
+                    isAdmin = true;
+                    document.getElementById('adminSection').classList.remove('hidden');
+                    hideSplash();
+                    loadAdminReport();
+                } else {
+                    await syncUserStatus();
+                    hideSplash();
+                }
+            } else {
+                document.getElementById('loginSection').classList.remove('hidden');
+                hideSplash();
+            }
+            lucide.createIcons();
+        });
+
+        function hideSplash() {
+            const splash = document.getElementById('splashScreen');
+            splash.style.opacity = '0';
+            setTimeout(() => splash.classList.add('hidden'), 500);
+        }
+
+        function initDatePickers() {
+            const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+            const now = new Date();
+            const yearSelectors = [document.getElementById('reportYear'), document.getElementById('adminYear')];
+            const monthSelectors = [document.getElementById('reportMonth'), document.getElementById('adminMonth')];
+            monthSelectors.forEach(s => {
+                months.forEach((m, i) => {
+                    const opt = document.createElement('option');
+                    opt.value = (i + 1).toString().padStart(2, '0');
+                    opt.text = m;
+                    opt.selected = (i === now.getMonth());
+                    s.appendChild(opt);
+                });
+            });
+            yearSelectors.forEach(s => {
+                for (let y = now.getFullYear(); y >= now.getFullYear() - 2; y--) {
+                    const opt = document.createElement('option');
+                    opt.value = y;
+                    opt.text = y;
+                    s.appendChild(opt);
+                }
+            });
+        }
+
+        function apiRequestJSONP(action, payload) {
+            return new Promise((resolve, reject) => {
+                const callbackName = 'jsonp_' + Math.round(Math.random() * 1000000);
+                window[callbackName] = (data) => {
+                    delete window[callbackName];
+                    document.getElementById(callbackName)?.remove();
+                    resolve(data);
+                };
+                const script = document.createElement('script');
+                script.id = callbackName;
+                script.src = `${GOOGLE_SCRIPT_URL}?callback=${callbackName}&action=${action}&payload=${encodeURIComponent(JSON.stringify(payload))}`;
+                script.onerror = () => { document.getElementById(callbackName)?.remove(); reject(new Error('Connection failed')); };
+                document.body.appendChild(script);
+            });
+        }
+
+        function showToast(msg, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `flex items-center gap-4 px-8 py-5 rounded-3xl shadow-2xl border ${type === 'success' ? 'bg-white text-slate-900 border-indigo-100' : 'bg-rose-50 text-rose-900 border-rose-100'} animate-up pointer-events-auto`;
+            toast.innerHTML = `<div class="${type === 'success' ? 'text-indigo-500' : 'text-rose-500'} bg-slate-50 w-10 h-10 rounded-2xl flex items-center justify-center"><i data-lucide="${type === 'success' ? 'check' : 'alert-circle'}" class="w-5 h-5"></i></div><span class="text-sm font-extrabold tracking-tight">${msg}</span>`;
+            container.appendChild(toast);
+            lucide.createIcons();
+            setTimeout(() => { toast.style.opacity = '0'; toast.style.transform = 'translateY(-20px)'; toast.style.transition = 'all 0.4s ease'; setTimeout(() => toast.remove(), 400); }, 3000);
+        }
+
+        function showConfirm(title, message, icon = 'help-circle') {
+            return new Promise((resolve) => {
+                const overlay = document.getElementById('modalOverlay');
+                const content = document.getElementById('modalContent');
+                document.getElementById('modalTitle').innerText = title;
+                document.getElementById('modalMessage').innerText = message;
+                document.getElementById('modalIcon').innerHTML = `<i data-lucide="${icon}" class="w-10 h-10"></i>`;
+                lucide.createIcons();
+                overlay.classList.remove('hidden');
+                setTimeout(() => { content.classList.remove('scale-90', 'opacity-0'); content.classList.add('scale-100', 'opacity-100'); }, 10);
+                const close = (res) => { content.classList.remove('scale-100', 'opacity-100'); content.classList.add('scale-90', 'opacity-0'); setTimeout(() => { overlay.classList.add('hidden'); resolve(res); }, 200); };
+                document.getElementById('modalConfirmBtn').onclick = () => close(true);
+                document.getElementById('modalCancelBtn').onclick = () => close(false);
+            });
+        }
+
+        const formatTime = (t) => {
+            if (!t || t.toString().trim() === "") return "";
+            if (t.toString().includes('T')) {
+                const date = new Date(t);
+                if (isNaN(date.getTime())) return t;
+                return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+            }
+            return t;
+        };
+
+        async function handleLogin() {
+            const userName = document.getElementById('userNameInput').value.trim();
+            const password = document.getElementById('passwordInput').value.trim();
+            if (!userName || !password) return showToast("Enter Name and Password", "error");
+            
+            const btn = document.getElementById('loginBtn');
+            btn.disabled = true; btn.innerHTML = "Authenticating...";
+            try {
+                const result = await apiRequestJSONP('login', { userName: userName, password: password });
+                if (result.success && result.user) {
+                    currentUser = result.user;
+                    // Save user info including isAdmin flag
+                    const userData = { userId: result.user.userId, userName: result.user.userName, password: password, isAdmin: result.user.isAdmin };
+                    localStorage.setItem('kollel_user', JSON.stringify(userData));
+                    
+                    // Route based on admin status
+                    if (result.user.isAdmin) {
+                        isAdmin = true;
+                        document.getElementById('loginSection').classList.add('hidden');
+                        document.getElementById('adminSection').classList.remove('hidden');
+                        loadAdminReport();
+                    } else {
+                        await syncUserStatus();
+                    }
+                } else showToast(result.message || "Invalid Name or Password", "error");
+            } catch (e) { showToast("Connection Error", "error"); }
+            finally { btn.disabled = false; btn.innerHTML = '<i data-lucide="user"></i> Login'; lucide.createIcons(); }
+        }
+
+        async function syncUserStatus() {
+            if (!currentUser) return;
+            try {
+                const user = await apiRequestJSONP('getUser', { userId: currentUser.userId });
+                if (user && user.userName) {
+                    user.password = currentUser.password; // Preserve password from localStorage
+                    user.isAdmin = currentUser.isAdmin; // Preserve admin status
+                    currentUser = user;
+                    localStorage.setItem('kollel_user', JSON.stringify(currentUser));
+                    
+                    document.getElementById('loginSection').classList.add('hidden');
+                    document.getElementById('dashboardSection').classList.remove('hidden');
+                    document.getElementById('userNameDisplay').innerText = currentUser.userName;
+                    document.getElementById('currentDate').innerText = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+                    document.getElementById('dailyTotalDisplay').innerText = formatMinsReadable(user.dailyTotal);
+
+                    if (user.activeStartTime) {
+                        startTime = new Date(user.activeStartTime);
+                        localStorage.setItem('kollel_start_time', startTime.getTime().toString());
+                        if (timerInterval) clearInterval(timerInterval);
+                        timerInterval = setInterval(updateTimerDisplay, 1000);
+                        updateTimerDisplay();
+                        updateUI(true);
+                    } else {
+                        startTime = null;
+                        if (timerInterval) clearInterval(timerInterval);
+                        localStorage.removeItem('kollel_start_time');
+                        document.getElementById('timerDisplay').innerText = "00:00:00";
+                        updateUI(false);
+                    }
+                    loadReport();
+                } else {
+                    logout();
+                }
+            } catch (e) { console.error("Sync failed", e); }
+        }
+
+        function switchTab(tab) {
+            // Reset manual form state if navigating away from the manual/edit tab
+            if (tab !== 'manual') resetManualForm();
+
+            const tabs = ['attendance', 'manual', 'reports', 'settings'];
+            tabs.forEach(t => {
+                document.getElementById(t + 'Section').classList.add('hidden');
+                const btn = document.getElementById('tab-' + t);
+                if (btn) btn.className = "flex-1 py-3.5 text-xs font-bold rounded-2xl transition-all z-10 text-slate-400 hover:text-slate-600";
+            });
+            const activeBtn = document.getElementById('tab-' + tab);
+            if (activeBtn) activeBtn.className = "flex-1 py-3.5 text-xs font-bold rounded-2xl transition-all z-10 text-white btn-primary";
+            document.getElementById(tab + 'Section').classList.remove('hidden');
+            
+            if (tab === 'manual' && !editingRow) resetManualForm();
+            if (tab === 'settings') { 
+                document.getElementById('settingName').value = currentUser.userName;
+                document.getElementById('settingId').value = currentUser.userId;
+                document.getElementById('settingPassword').value = currentUser.password || "";
+            }
+            if (tab === 'reports') loadReport();
+            lucide.createIcons();
+        }
+
+        async function refreshUserStatus() {
+            if (!currentUser) return;
+            try {
+                const user = await apiRequestJSONP('getUser', { userId: currentUser.userId });
+                if (user) {
+                    currentUser.dailyTotal = user.dailyTotal;
+                    document.getElementById('dailyTotalDisplay').innerText = formatMinsReadable(user.dailyTotal);
+                }
+            } catch (e) {}
+        }
+
+        async function loadReport() {
+            const m = document.getElementById('reportMonth').value;
+            const y = document.getElementById('reportYear').value;
+            const monthKey = `${y}-${m}`;
+            const list = document.getElementById('reportEntriesList');
+            list.innerHTML = `<div class="p-20 text-center animate-spin"><i data-lucide="loader-2" class="mx-auto text-primary"></i></div>`;
+            lucide.createIcons();
+            try {
+                const data = await apiRequestJSONP('getUserReport', { userId: currentUser.userId, monthKey });
+                document.getElementById('reportTotalHours').innerHTML = `${data.totalHours || '0.00'} <span class="text-xs font-bold text-slate-400 ml-1">HRS</span>`;
+                document.getElementById('headerMonthTotal').innerText = (data.totalHours || 0) + "h";
+                if (!data.entries?.length) { list.innerHTML = `<div class="glass-panel p-10 rounded-[2.5rem] text-center text-slate-400 font-bold text-xs uppercase tracking-widest">No Logs Found</div>`; return; }
+                // Group entries by date
+                const grouped = {};
+                data.entries.forEach(e => {
+                    // Force parsing as local date to avoid timezone shifting
+                    const parts = e.date.split('-');
+                    const localDate = new Date(parts[0], parts[1] - 1, parts[2]);
+                    const k = localDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+                    
+                    if (!grouped[k]) grouped[k] = { date: k, duration: 0, entries: [] };
+                    grouped[k].duration += parseInt(e.duration || 0);
+                    grouped[k].entries.push(e);
+                });
+                list.innerHTML = Object.values(grouped).map(day => `
+                    <div class="glass-panel rounded-[2rem] overflow-hidden">
+                        <div class="px-6 py-4 flex justify-between items-center bg-slate-50/30 border-b border-slate-100/50">
+                            <span class="text-xs font-black text-slate-800">${day.date}</span>
+                            <span class="text-[9px] font-black bg-white px-3 py-1.5 rounded-xl shadow-sm border border-slate-100 text-primary">${formatMinsReadable(day.duration)}</span>
+                        </div>
+                        <div class="p-3 space-y-2">
+                            ${day.entries.map(e => {
+                                const entryJson = JSON.stringify(e).replace(/'/g, "\\'");
+                                return `
+                                <div class="flex justify-between items-center p-4 bg-white/40 rounded-2xl group transition-all">
+                                    <div class="flex flex-col">
+                                        <span class="text-[11px] font-bold text-slate-700 uppercase tracking-tight">${formatTime(e.start)} — ${formatTime(e.end)}</span>
+                                        <span class="text-[9px] font-black text-slate-300 uppercase mt-0.5">${formatMinsReadable(e.duration)}</span>
+                                    </div>
+                                    <div class="flex gap-2 opacity-0 group-hover:opacity-100 transition-all">
+                                        <button onclick='openEdit(${entryJson})' class="w-10 h-10 bg-indigo-50 text-primary rounded-xl flex items-center justify-center"><i data-lucide="edit-3" class="w-4 h-4"></i></button>
+                                        <button onclick="handleDelete('${e.monthKey}', ${e.rowIndex})" class="w-10 h-10 bg-rose-50 text-rose-500 rounded-xl flex items-center justify-center"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                                    </div>
+                                </div>`;}).join('')}
+                        </div>
+                    </div>`).join('');
+                lucide.createIcons();
+            } catch (e) { list.innerHTML = "Error loading."; }
+        }
+
+        async function updateUserProfile() {
+            const newName = document.getElementById('settingName').value.trim();
+            const newPassword = document.getElementById('settingPassword').value.trim();
+            if (!newName) return showToast("Enter Name", "error");
+            
+            const btn = document.getElementById('updateProfileBtn');
+            const oldId = currentUser.userId;
+            btn.disabled = true; btn.innerText = "Updating...";
+            try {
+                const res = await apiRequestJSONP('updateUser', { oldId: oldId, newName: newName, newPassword: newPassword });
+                if (res.success) {
+                    currentUser.userName = newName;
+                    if (newPassword) currentUser.password = newPassword;
+                    localStorage.setItem('kollel_user', JSON.stringify(currentUser));
+                    document.getElementById('userNameDisplay').innerText = newName;
+                    showToast("Profile Updated"); 
+                    switchTab('attendance');
+                } else showToast(res.message || "Failed", "error");
+            } catch (e) { showToast("Connection Error", "error"); }
+            finally { btn.disabled = false; btn.innerText = "Update Profile"; }
+        }
+
+        const formatTimeForInput = (t) => {
+            if (!t) return "";
+            const s = t.toString().trim();
+            // Match HH:mm from strings like "05:19", "05:19 AM", or "2024-04-24T05:19:00"
+            const match = s.match(/(\d{1,2}):(\d{2})/);
+            if (match) {
+                let hh = parseInt(match[1]);
+                const mm = match[2];
+                if (s.toLowerCase().includes('pm') && hh < 12) hh += 12;
+                if (s.toLowerCase().includes('am') && hh === 12) hh = 0;
+                return hh.toString().padStart(2, '0') + ":" + mm;
+            }
+            return "";
+        };
+
+        function adjustTime(id, mins) {
+            const el = document.getElementById(id);
+            let [h, m] = (el.value || "08:00").split(':').map(Number);
+            let date = new Date();
+            date.setHours(h, m + mins);
+            el.value = date.getHours().toString().padStart(2, '0') + ":" + date.getMinutes().toString().padStart(2, '0');
+        }
+
+        function openEdit(entry) {
+            editingRow = { monthKey: entry.monthKey, rowIndex: entry.rowIndex };
+            
+            if (entry.date) {
+                const dateParts = entry.date.toString().split('T')[0].split(/[-/]/);
+                if (dateParts.length === 3) {
+                    const y = dateParts[0].length === 4 ? dateParts[0] : dateParts[2];
+                    const m = dateParts[0].length === 4 ? dateParts[1] : dateParts[1];
+                    const d = dateParts[0].length === 4 ? dateParts[2] : dateParts[0];
+                    document.getElementById('manualDate').value = `${y}-${m.toString().padStart(2, '0')}-${d.toString().padStart(2, '0')}`;
+                }
+            }
+            
+            document.getElementById('manualStart').value = formatTimeForInput(entry.start);
+            document.getElementById('manualEnd').value = formatTimeForInput(entry.end);
+            
+            document.getElementById('manualTitle').innerText = "Edit Record";
+            document.getElementById('tab-manual').innerText = "Edit Mode";
+            document.getElementById('submitManualBtn').innerHTML = "Save Changes";
+            document.getElementById('cancelEditBtn').classList.remove('hidden');
+            switchTab('manual');
+        }
+
+        function resetManualForm() {
+            editingRow = null; 
+            document.getElementById('manualTitle').innerText = "Add Record";
+            document.getElementById('tab-manual').innerText = "Manual";
+            document.getElementById('manualStart').value = ""; 
+            document.getElementById('manualEnd').value = "";
+            const now = new Date();
+            const todayStr = now.toISOString().split('T')[0];
+            document.getElementById('manualDate').value = todayStr;
+            document.getElementById('manualDate').max = todayStr; // Prevent future dates
+            document.getElementById('submitManualBtn').innerHTML = "Save Entry";
+            document.getElementById('cancelEditBtn').classList.remove('hidden');
+        }
+
+        function cancelEdit() { 
+            const isEditing = !!editingRow;
+            resetManualForm(); 
+            switchTab(isEditing ? 'reports' : 'attendance'); 
+        }
+
+        async function submitManualEntry() {
+            const data = { 
+                userId: currentUser.userId, 
+                date: document.getElementById('manualDate').value, 
+                startTime: document.getElementById('manualStart').value, 
+                endTime: document.getElementById('manualEnd').value 
+            };
+            if (!data.date || !data.startTime || !data.endTime) return showToast("Missing Fields", "error");
+            
+            // 1. Time Sequence Validation
+            if (data.startTime >= data.endTime) return showToast("End must be after Start", "error");
+
+            // 2. Future Time Validation
+            const now = new Date();
+            const entryEnd = new Date(data.date + " " + data.endTime);
+            if (entryEnd > now) return showToast("Cannot report future time", "error");
+
+            const btn = document.getElementById('submitManualBtn');
+            btn.disabled = true;
+            try {
+                const isEdit = !!editingRow;
+                const res = await apiRequestJSONP(isEdit ? 'editEntry' : 'manualEntry', { ...data, ...editingRow });
+                if (res?.success) { 
+                    showToast(isEdit ? "Record Updated" : "Entry Logged"); 
+                    const wasEditing = !!editingRow;
+                    resetManualForm(); 
+                    await syncUserStatus();
+                    switchTab(wasEditing ? 'reports' : 'attendance'); 
+                } else showToast(res.message || "Error", "error");
+            } catch (e) { showToast("Failed", "error"); }
+            finally { btn.disabled = false; }
+        }
+
+        async function handleDelete(monthKey, rowIndex) {
+            if (await showConfirm("Delete Log", "Permanently remove this entry?", "trash-2")) {
+                try {
+                    const res = await apiRequestJSONP('deleteEntry', { monthKey, rowIndex });
+                    if (res?.success) { showToast("Deleted"); refreshUserStatus(); loadReport(); }
+                } catch (e) { showToast("Error", "error"); }
+            }
+        }
+
+        async function loadAdminReport() {
+            const m = document.getElementById('adminMonth').value;
+            const y = document.getElementById('adminYear').value;
+            const monthKey = `${y}-${m}`;
+            const list = document.getElementById('adminUserList');
+            list.innerHTML = `<div class="p-20 text-center animate-pulse text-slate-400 font-black text-xs uppercase tracking-widest">Compiling Global Data...</div>`;
+            try {
+                const data = await apiRequestJSONP('getAdminReport', { monthKey });
+                document.getElementById('adminGlobalTotal').innerText = (data.globalTotal || "0.00") + "h";
+                list.innerHTML = data.users.map(u => `<div onclick="viewUserDetail('${u.userId}', '${u.userName}', '${monthKey}')" class="p-5 bg-slate-50 rounded-2xl border border-slate-100 flex justify-between items-center hover:bg-indigo-50 hover:border-indigo-100 transition-all cursor-pointer">
+                    <div><p class="text-sm font-black text-slate-900">${u.userName}</p><p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">ID: ${u.userId}</p></div>
+                    <div class="text-right"><p class="text-lg font-black text-slate-900">${u.totalHours}h</p><p class="text-[9px] font-bold text-indigo-400 uppercase tracking-widest">This Month</p></div>
+                </div>`).join('');
+            } catch (e) { list.innerHTML = "Failed to load admin data."; }
+        }
+
+        async function viewUserDetail(uid, name, month) {
+            const overlay = document.getElementById('adminDetailOverlay');
+            const list = document.getElementById('adminUserDetailList');
+            document.getElementById('detailUserName').innerText = name;
+            document.getElementById('detailMonth').innerText = month;
+            overlay.classList.remove('hidden');
+            list.innerHTML = `<div class="p-10 text-center animate-spin"><i data-lucide="loader-2" class="mx-auto text-primary"></i></div>`;
+            lucide.createIcons();
+            try {
+                const data = await apiRequestJSONP('getUserReport', { userId: uid, monthKey: month });
+                document.getElementById('detailUserTotal').innerText = data.totalHours + "h";
+                
+                if (!data.entries?.length) { 
+                    list.innerHTML = `<div class="p-10 text-center text-slate-400 font-bold text-xs uppercase tracking-widest">No Logs Found</div>`; 
+                    return; 
+                }
+
+                // Group entries by date
+                const grouped = {};
+                data.entries.forEach(e => {
+                    // Force parsing as local date to avoid timezone shifting
+                    const parts = e.date.split('-');
+                    const localDate = new Date(parts[0], parts[1] - 1, parts[2]);
+                    const k = localDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+                    
+                    if (!grouped[k]) grouped[k] = { date: k, duration: 0, entries: [] };
+                    grouped[k].duration += parseInt(e.duration || 0);
+                    grouped[k].entries.push(e);
+                });
+
+                list.innerHTML = Object.values(grouped).reverse().map(day => `
+                    <div class="bg-slate-50/50 rounded-[1.5rem] overflow-hidden border border-slate-100/50 mb-4">
+                        <div class="px-4 py-2.5 flex justify-between items-center bg-white/60 border-b border-slate-100/50">
+                            <span class="text-[10px] font-black text-slate-500 uppercase">${day.date}</span>
+                            <span class="text-[9px] font-black bg-indigo-50 px-2 py-1 rounded-lg text-primary">${formatMinsReadable(day.duration)}</span>
+                        </div>
+                        <div class="p-2 space-y-1">
+                            ${day.entries.map(e => `
+                                <div class="flex justify-between items-center p-3 bg-white/40 rounded-xl">
+                                    <div class="flex flex-col">
+                                        <span class="text-[10px] font-bold text-slate-700 uppercase tracking-tight">${formatTime(e.start)} — ${formatTime(e.end)}</span>
+                                    </div>
+                                    <span class="text-[9px] font-black text-slate-300 uppercase">${formatMinsReadable(e.duration)}</span>
+                                </div>`).join('')}
+                        </div>
+                    </div>`).join('');
+            } catch (e) { list.innerHTML = "Error."; }
+        }
+
+        function closeAdminDetail() { document.getElementById('adminDetailOverlay').classList.add('hidden'); }
+
+        async function handleStart() {
+            if (isProcessing) return;
+            isProcessing = true;
+            try {
+                const res = await apiRequestJSONP('startSession', { userId: currentUser.userId });
+                if (res?.success) {
+                    startTime = new Date(); localStorage.setItem('kollel_start_time', startTime.getTime().toString());
+                    timerInterval = setInterval(updateTimerDisplay, 1000); updateUI(true); showToast("Session Active");
+                } else showToast(res?.message || "Error", "error");
+            } catch (e) { showToast("Error", "error"); }
+            finally { isProcessing = false; }
+        }
+
+        async function handleEnd() {
+            if (isProcessing) return;
+            isProcessing = true;
+            try {
+                const res = await apiRequestJSONP('endSession', { userId: currentUser.userId });
+                if (res?.success) {
+                    clearInterval(timerInterval); localStorage.removeItem('kollel_start_time');
+                    document.getElementById('timerDisplay').innerText = "00:00:00";
+                    updateUI(false); showToast("Session Logged: " + res.duration + "m");
+                    refreshUserStatus(); loadReport();
+                } else showToast(res?.message || "Error", "error");
+            } catch (e) { showToast("Error", "error"); }
+            finally { isProcessing = false; }
+        }
+
+        function updateTimerDisplay() {
+            if (!startTime) return;
+            const d = new Date() - startTime;
+            const pad = (n) => n.toString().padStart(2, '0');
+            const h = Math.floor(d / 3600000);
+            const m = Math.floor((d % 3600000) / 60000);
+            const s = Math.floor((d % 60000) / 1000);
+            
+            if (d < 0) {
+                document.getElementById('timerDisplay').innerText = "00:00:00";
+            } else {
+                document.getElementById('timerDisplay').innerText = `${pad(h)}:${pad(m)}:${pad(s)}`;
+            }
+
+            if (currentUser) {
+                const currentSessionMins = Math.max(0, Math.floor(d / 60000));
+                const totalMins = (parseInt(currentUser.dailyTotal) || 0) + currentSessionMins;
+                document.getElementById('dailyTotalDisplay').innerText = formatMinsReadable(totalMins);
+            }
+        }
+
+        function updateUI(active) {
+            const status = document.getElementById('statusIndicator');
+            const startBtn = document.getElementById('startBtn');
+            const endBtn = document.getElementById('endBtn');
+            startBtn.disabled = active; endBtn.disabled = !active;
+            if (active) {
+                startBtn.classList.add('opacity-50'); endBtn.classList.add('bg-rose-600', 'text-white', 'shadow-2xl');
+                status.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Session: Active';
+                status.className = "inline-flex items-center gap-2.5 px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-[0.15em] bg-emerald-50 text-emerald-600 border border-emerald-100";
+            } else {
+                startBtn.classList.remove('opacity-50'); endBtn.classList.remove('bg-rose-600', 'text-white', 'shadow-2xl');
+                status.innerHTML = '<span class="w-2 h-2 rounded-full bg-slate-400"></span> Session: Inactive';
+                status.className = "inline-flex items-center gap-2.5 px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-[0.15em] bg-slate-100 text-slate-500 border border-slate-200/50";
+            }
+        }
+
+        function formatMinsReadable(m) { const val = parseInt(m) || 0; const h = Math.floor(val / 60); const mins = val % 60; return h > 0 ? `${h}h ${mins}m` : `${mins}m`; }
+        function logout() { localStorage.clear(); location.reload(); }
+    </script>
+</body>
+
+</html>
