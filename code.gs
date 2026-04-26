@@ -1,7 +1,8 @@
 const CONFIG = {
   TIMEZONE: "America/Chicago",
   USERS_SHEET: "users",
-  HEADERS: ["id", "user_id", "user_name", "date", "start_time", "end_time", "duration_minutes", "shift", "created_at"]
+  HEADERS: ["id", "user_id", "user_name", "date", "start_time", "end_time", "duration_minutes", "shift", "created_at"],
+  USER_HEADERS: ["id", "name", "password", "is_admin", "is_active"]
 };
 
 // HELPER: Convert any time (HH:mm string or Date object) to minutes in the CONFIG timezone
@@ -49,14 +50,15 @@ function getUserInfo(userId, loginParams) {
       const uName = usersData[i][1]?.toString().trim();
       const uPass = usersData[i][2]?.toString().trim();
       const uIsAdmin = usersData[i][3] ? usersData[i][3].toString().trim().toLowerCase() === 'true' : false;
+      const uIsActive = usersData[i][4] === undefined || usersData[i][4] === "" || usersData[i][4].toString().trim().toLowerCase() === 'true';
       
       // Case 1: Login Check (Name + Password)
       if (loginParams && uName === loginParams.userName && uPass === loginParams.password) {
-        return { userId: uId, userName: uName, isAdmin: uIsAdmin };
+        return { userId: uId, userName: uName, isAdmin: uIsAdmin, isActive: uIsActive };
       }
       // Case 2: ID Check (for syncing)
       if (!loginParams && uId === userId?.toString().trim()) {
-        return { userId: uId, userName: uName, isAdmin: uIsAdmin };
+        return { userId: uId, userName: uName, isAdmin: uIsAdmin, isActive: uIsActive };
       }
     }
   } catch (e) { return null; }
@@ -154,6 +156,10 @@ function doGet(e) {
     else if (action === 'manualEntry') result = manualEntry(payload);
     else if (action === 'deleteEntry') result = deleteEntry(payload);
     else if (action === 'updateUser') result = updateUser(payload);
+    else if (action === 'listAllUsers') result = listAllUsers(payload.adminId);
+    else if (action === 'saveUser') result = saveUser(payload);
+    else if (action === 'toggleUserStatus') result = toggleUserStatus(payload);
+
     return ContentService.createTextOutput(callback + "(" + JSON.stringify(result) + ")").setMimeType(ContentService.MimeType.JAVASCRIPT);
   } catch (err) {
     return ContentService.createTextOutput(callback + "(" + JSON.stringify({success: false, error: err.toString()}) + ")").setMimeType(ContentService.MimeType.JAVASCRIPT);
@@ -163,10 +169,123 @@ function doGet(e) {
 function login(userName, password) {
   const user = getUserInfo(null, { userName: userName?.trim(), password: password?.trim() });
   if (user) {
+    if (!user.isActive) return { success: false, message: "Account is inactive" };
     const userDetails = getUser(user.userId);
     return { success: true, user: userDetails };
   }
   return { success: false, message: "Invalid Name or Password" };
+}
+
+function listAllUsers(adminId) {
+  const admin = getUserInfo(adminId);
+  if (!admin || !admin.isAdmin) return { success: false, message: "Unauthorized" };
+  
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName(CONFIG.USERS_SHEET);
+  const data = sheet.getDataRange().getValues();
+  const users = [];
+  
+  for (let i = 1; i < data.length; i++) {
+    users.push({
+      userId: data[i][0]?.toString(),
+      userName: data[i][1]?.toString(),
+      password: data[i][2]?.toString(),
+      isAdmin: data[i][3]?.toString().toLowerCase() === 'true',
+      isActive: data[i][4] === undefined || data[i][4] === "" || data[i][4].toString().toLowerCase() === 'true'
+    });
+  }
+  return { success: true, users: users };
+}
+
+function saveUser(params) {
+  const lock = LockService.getScriptLock();
+  try {
+    lock.waitLock(10000);
+    const admin = getUserInfo(params.adminId);
+    if (!admin || !admin.isAdmin) throw new Error("Unauthorized");
+
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const sheet = ss.getSheetByName(CONFIG.USERS_SHEET);
+    const data = sheet.getDataRange().getValues();
+    
+    const targetUserId = params.userData.userId?.toString().trim();
+    const newName = params.userData.userName?.trim();
+    const newPass = params.userData.password?.trim();
+    const newIsAdmin = params.userData.isAdmin;
+
+    if (targetUserId) {
+      // Edit existing
+      let adminCount = 0;
+      let targetRowIndex = -1;
+      for (let i = 1; i < data.length; i++) {
+        const uId = data[i][0].toString().trim();
+        const uIsAdmin = data[i][3]?.toString().toLowerCase() === 'true';
+        const uIsActive = data[i][4] === undefined || data[i][4] === "" || data[i][4].toString().toLowerCase() === 'true';
+        
+        if (uIsAdmin && uIsActive) adminCount++;
+        if (uId === targetUserId) targetRowIndex = i + 1;
+      }
+
+      if (targetRowIndex === -1) throw new Error("User not found");
+
+      // Safety: Cannot demote the last active admin
+      const currentIsAdmin = data[targetRowIndex-1][3]?.toString().toLowerCase() === 'true';
+      const currentIsActive = data[targetRowIndex-1][4] === undefined || data[targetRowIndex-1][4] === "" || data[targetRowIndex-1][4].toString().toLowerCase() === 'true';
+      
+      if (currentIsAdmin && currentIsActive && !newIsAdmin && adminCount <= 1) {
+        throw new Error("Cannot demote the only active administrator");
+      }
+
+      sheet.getRange(targetRowIndex, 2, 1, 3).setValues([[newName, newPass, newIsAdmin]]);
+      return { success: true };
+    } else {
+      // Add new
+      const nextId = (data.length > 1) ? Math.max(...data.slice(1).map(r => parseInt(r[0]) || 0)) + 1 : 1;
+      sheet.appendRow([nextId.toString(), newName, newPass, newIsAdmin, true]);
+      return { success: true };
+    }
+  } catch (e) { return { success: false, message: e.toString() }; }
+  finally { lock.releaseLock(); }
+}
+
+function toggleUserStatus(params) {
+  const lock = LockService.getScriptLock();
+  try {
+    lock.waitLock(10000);
+    const admin = getUserInfo(params.adminId);
+    if (!admin || !admin.isAdmin) throw new Error("Unauthorized");
+
+    if (params.targetUserId.toString() === params.adminId.toString()) throw new Error("Cannot deactivate yourself");
+
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const sheet = ss.getSheetByName(CONFIG.USERS_SHEET);
+    const data = sheet.getDataRange().getValues();
+
+    let adminCount = 0;
+    let targetRowIndex = -1;
+    for (let i = 1; i < data.length; i++) {
+      const uId = data[i][0].toString().trim();
+      const uIsAdmin = data[i][3]?.toString().toLowerCase() === 'true';
+      const uIsActive = data[i][4] === undefined || data[i][4] === "" || data[i][4].toString().toLowerCase() === 'true';
+      
+      if (uIsAdmin && uIsActive) adminCount++;
+      if (uId === params.targetUserId.toString()) targetRowIndex = i + 1;
+    }
+
+    if (targetRowIndex === -1) throw new Error("User not found");
+
+    const isTargetAdmin = data[targetRowIndex-1][3]?.toString().toLowerCase() === 'true';
+    const currentStatus = data[targetRowIndex-1][4] === undefined || data[targetRowIndex-1][4] === "" || data[targetRowIndex-1][4].toString().toLowerCase() === 'true';
+
+    // Safety: Cannot deactivate the last active admin
+    if (currentStatus && isTargetAdmin && adminCount <= 1) {
+      throw new Error("Cannot deactivate the only active administrator");
+    }
+
+    sheet.getRange(targetRowIndex, 5).setValue(!currentStatus);
+    return { success: true, newStatus: !currentStatus };
+  } catch (e) { return { success: false, message: e.toString() }; }
+  finally { lock.releaseLock(); }
 }
 
 function updateUser(params) {
