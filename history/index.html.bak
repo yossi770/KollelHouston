@@ -110,7 +110,7 @@
             <p class="text-slate-400 mt-3 font-semibold uppercase tracking-widest text-[10px]">Secure Access</p>
         </div>
         <div class="space-y-4">
-            <input type="text" id="userNameInput" placeholder="Email"
+            <input type="text" id="userNameInput" placeholder="User Name"
                 class="w-full p-5 input-field rounded-2xl text-center text-xl font-bold placeholder:text-slate-300 placeholder:font-medium">
             <input type="password" id="passwordInput" placeholder="Password"
                 class="w-full p-5 input-field rounded-2xl text-center text-xl font-bold placeholder:text-slate-300 placeholder:font-medium">
@@ -180,9 +180,9 @@
                 <div class="space-y-2">
                     <div class="flex justify-between items-center px-1">
                         <label class="text-[10px] font-black uppercase tracking-widest text-slate-400">Date of Entry</label>
-                        <button onclick="document.getElementById('manualDate').blur()" class="text-[9px] font-bold text-indigo-500 uppercase tracking-tighter">Finish</button>
+                        <button onclick="document.getElementById('manualDate').blur()" class="text-[9px] font-bold text-indigo-500 uppercase tracking-tighter">Close Picker</button>
                     </div>
-                    <input type="date" id="manualDate" onclick="this.showPicker()" class="w-full p-5 input-field rounded-2xl font-bold text-slate-900">
+                    <input type="date" id="manualDate" onclick="this.showPicker()" onchange="this.blur()" class="w-full p-5 input-field rounded-2xl font-bold text-slate-900">
                 </div>
                 <div class="grid grid-cols-2 gap-6">
                     <div class="space-y-2">
@@ -190,7 +190,7 @@
                             <label class="text-[10px] font-black uppercase tracking-widest text-slate-400">Start Time</label>
                             <button onclick="document.getElementById('manualStart').blur()" class="text-[9px] font-bold text-indigo-500 uppercase tracking-tighter">Done</button>
                         </div>
-                        <input type="time" id="manualStart" onclick="this.showPicker()" class="w-full p-5 input-field rounded-2xl font-bold text-slate-900">
+                        <input type="time" id="manualStart" onclick="this.showPicker()" onchange="this.blur()" class="w-full p-5 input-field rounded-2xl font-bold text-slate-900">
                         <div class="flex gap-1 mt-2">
                             <button onclick="adjustTime('manualStart', -60)" class="flex-1 text-[9px] font-bold bg-slate-100 p-2 rounded-lg text-slate-500">-1h</button>
                             <button onclick="adjustTime('manualStart', -15)" class="flex-1 text-[9px] font-bold bg-slate-100 p-2 rounded-lg text-slate-500">-15m</button>
@@ -203,7 +203,7 @@
                             <label class="text-[10px] font-black uppercase tracking-widest text-slate-400">End Time</label>
                             <button onclick="document.getElementById('manualEnd').blur()" class="text-[9px] font-bold text-indigo-500 uppercase tracking-tighter">Done</button>
                         </div>
-                        <input type="time" id="manualEnd" onclick="this.showPicker()" class="w-full p-5 input-field rounded-2xl font-bold text-slate-900">
+                        <input type="time" id="manualEnd" onclick="this.showPicker()" onchange="this.blur()" class="w-full p-5 input-field rounded-2xl font-bold text-slate-900">
                         <div class="flex gap-1 mt-2">
                             <button onclick="adjustTime('manualEnd', -60)" class="flex-1 text-[9px] font-bold bg-slate-100 p-2 rounded-lg text-slate-500">-1h</button>
                             <button onclick="adjustTime('manualEnd', -15)" class="flex-1 text-[9px] font-bold bg-slate-100 p-2 rounded-lg text-slate-500">-15m</button>
@@ -236,13 +236,15 @@
         </div>
 
         <div id="settingsSection" class="hidden glass-panel p-10 rounded-[3rem] space-y-8">
-            <div class="flex items-center justify-between gap-4">
-                <div class="flex items-center gap-4">
-                    <div class="w-14 h-14 bg-indigo-50 rounded-2xl flex items-center justify-center text-primary"><i data-lucide="user-cog" class="w-7 h-7"></i></div>
-                    <h3 class="text-2xl font-black text-slate-900 tracking-tight">Profile</h3>
-                </div>
+            <div class="flex items-center gap-4">
+                <div class="w-14 h-14 bg-indigo-50 rounded-2xl flex items-center justify-center text-primary"><i data-lucide="user-cog" class="w-7 h-7"></i></div>
+                <h3 class="text-2xl font-black text-slate-900 tracking-tight">Profile Settings</h3>
             </div>
             <div class="space-y-6">
+                <div class="space-y-2">
+                    <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Login Code (ID)</label>
+                    <input type="number" id="settingId" readonly class="w-full p-5 input-field rounded-2xl font-bold text-slate-500 bg-slate-100 cursor-not-allowed opacity-60">
+                </div>
                 <div class="space-y-2">
                     <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Display Name</label>
                     <input type="text" id="settingName" class="w-full p-5 input-field rounded-2xl font-bold text-slate-900">
@@ -250,10 +252,6 @@
                 <div class="space-y-2">
                     <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Password</label>
                     <input type="password" id="settingPassword" class="w-full p-5 input-field rounded-2xl font-bold text-slate-900">
-                    <div class="flex justify-between items-center px-1 mt-1">
-                        <p class="text-[9px] font-bold text-rose-400">Min. 6 characters</p>
-                        <p class="text-[9px] font-bold text-slate-400">Leave blank to keep current</p>
-                    </div>
                 </div>
                 <button onclick="updateUserProfile()" id="updateProfileBtn" class="w-full btn-primary text-white p-5 rounded-2xl font-bold shadow-xl transition-all active:scale-95">Update Profile</button>
             </div>
@@ -264,7 +262,7 @@
         <div class="flex justify-between items-center px-4">
             <div>
                 <p class="text-[10px] font-black uppercase tracking-widest text-indigo-400">Admin Control</p>
-                <h2 class="text-3xl font-black text-slate-900" id="adminConsoleTitle">Console</h2>
+                <h2 class="text-3xl font-black text-slate-900">Console</h2>
             </div>
             <button onclick="logout()" class="w-12 h-12 flex items-center justify-center rounded-2xl bg-white shadow-sm text-slate-400 hover:text-rose-500"><i data-lucide="log-out" class="w-5 h-5"></i></button>
         </div>
@@ -307,10 +305,7 @@
     <div id="userModalOverlay" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[150] hidden flex items-center justify-center p-6">
         <div class="bg-white w-full max-w-sm rounded-[2.5rem] shadow-2xl p-8 transform transition-all scale-90 opacity-0" id="userModalContent">
             <div class="flex justify-between items-center mb-8">
-                <div>
-                    <h3 class="text-2xl font-black text-slate-900 tracking-tight" id="userModalTitle">Add User</h3>
-                    <p id="manageUserIdDisplayContainer" class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1 hidden">User ID: <span id="manageUserIdDisplay" class="text-primary">#---</span></p>
-                </div>
+                <h3 class="text-2xl font-black text-slate-900 tracking-tight" id="userModalTitle">Add User</h3>
                 <button onclick="closeUserModal()" class="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400"><i data-lucide="x" class="w-5 h-5"></i></button>
             </div>
             <div class="space-y-6">
@@ -319,14 +314,9 @@
                     <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Full Name</label>
                     <input type="text" id="manageUserName" class="w-full p-4 input-field rounded-xl font-bold text-slate-900">
                 </div>
-                <div class="space-y-2" id="manageUserEmailContainer">
-                    <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Email</label>
-                    <input type="email" id="manageUserEmail" class="w-full p-4 input-field rounded-xl font-bold text-slate-900">
-                </div>
-                <div class="space-y-2" id="manageUserPasswordContainer">
-                    <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Password</label>
+                <div class="space-y-2">
+                    <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Login Password</label>
                     <input type="text" id="manageUserPassword" class="w-full p-4 input-field rounded-xl font-bold text-slate-900">
-                    <p class="text-[9px] font-bold text-rose-400 px-1 mt-1">Minimum 6 characters required (e.g. 123456)</p>
                 </div>
                 <div class="flex items-center gap-3 p-4 bg-slate-50 rounded-xl">
                     <input type="checkbox" id="manageUserIsAdmin" class="w-5 h-5 rounded border-slate-300 text-primary focus:ring-primary">
@@ -356,12 +346,8 @@
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
-        const SUPABASE_URL = "https://cweemcuiscckshwaguap.supabase.co";
-        const SUPABASE_KEY = "sb_publishable_PgqkZoSpS47sC5I1SultfQ_qZBnsnVc";
-        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxpIm8v5F-r_uZSTl9Q_QzLyeDzrCEvnKNGDESem1IkBzAaGWV9Z4EPz2dJY16L8gGQ/exec";
         let currentUser = null;
         let timerInterval = null;
         let startTime = null;
@@ -375,10 +361,9 @@
 
             if (savedUser) {
                 currentUser = JSON.parse(savedUser);
-                if (currentUser.is_admin) {
+                if (currentUser.isAdmin) {
                     isAdmin = true;
                     document.getElementById('adminSection').classList.remove('hidden');
-                    document.getElementById('adminConsoleTitle').innerText = currentUser.name;
                     hideSplash();
                     loadAdminReport();
                 } else {
@@ -413,12 +398,28 @@
                 });
             });
             yearSelectors.forEach(s => {
-                for (let y = now.getFullYear(); y >= 2026; y--) {
+                for (let y = now.getFullYear(); y >= now.getFullYear() - 2; y--) {
                     const opt = document.createElement('option');
                     opt.value = y;
                     opt.text = y;
                     s.appendChild(opt);
                 }
+            });
+        }
+
+        function apiRequestJSONP(action, payload) {
+            return new Promise((resolve, reject) => {
+                const callbackName = 'jsonp_' + Math.round(Math.random() * 1000000);
+                window[callbackName] = (data) => {
+                    delete window[callbackName];
+                    document.getElementById(callbackName)?.remove();
+                    resolve(data);
+                };
+                const script = document.createElement('script');
+                script.id = callbackName;
+                script.src = `${GOOGLE_SCRIPT_URL}?callback=${callbackName}&action=${action}&payload=${encodeURIComponent(JSON.stringify(payload))}`;
+                script.onerror = () => { document.getElementById(callbackName)?.remove(); reject(new Error('Connection failed')); };
+                document.body.appendChild(script);
             });
         }
 
@@ -449,235 +450,140 @@
         }
 
         const formatTime = (t) => {
-            if (!t) return "";
-            // Handle TIME string from Postgres (HH:mm:ss or HH:mm)
-            return t.split(':').slice(0, 2).join(':');
-        };
-
-        const formatTimeAMPM = (t) => {
-            if (!t) return "";
-            const [h, m] = t.split(':');
-            let hours = parseInt(h);
-            const ampm = hours >= 12 ? 'PM' : 'AM';
-            hours = hours % 12;
-            hours = hours ? hours : 12;
-            return `${hours}:${m} ${ampm}`;
+            if (!t || t.toString().trim() === "") return "";
+            if (t.toString().includes('T')) {
+                const date = new Date(t);
+                if (isNaN(date.getTime())) return t;
+                return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+            }
+            return t;
         };
 
         async function handleLogin() {
-            const email = document.getElementById('userNameInput').value.trim();
+            const userName = document.getElementById('userNameInput').value.trim();
             const password = document.getElementById('passwordInput').value.trim();
-            if (!email || !password) return showToast("Enter Email and Password", "error");
+            if (!userName || !password) return showToast("Enter Name and Password", "error");
             
             const btn = document.getElementById('loginBtn');
             btn.disabled = true; btn.innerHTML = "Authenticating...";
             try {
-                console.log("Attempting login for:", email);
-                const { data, error } = await supabaseClient.auth.signInWithPassword({
-                    email: email,
-                    password: password
-                });
-
-                if (error) {
-                    console.error("Supabase Auth Error:", error.message);
-                    showToast(error.message, "error");
-                } else {
-                    console.log("Login successful! Session data:", data);
-                    if (data.session) {
-                        await supabaseClient.auth.setSession(data.session);
+                const result = await apiRequestJSONP('login', { userName: userName, password: password });
+                if (result.success && result.user) {
+                    currentUser = result.user;
+                    // Save user info including isAdmin flag
+                    const userData = { userId: result.user.userId, userName: result.user.userName, password: password, isAdmin: result.user.isAdmin };
+                    localStorage.setItem('kollel_user', JSON.stringify(userData));
+                    
+                    // Route based on admin status
+                    if (result.user.isAdmin) {
+                        isAdmin = true;
+                        document.getElementById('loginSection').classList.add('hidden');
+                        document.getElementById('adminSection').classList.remove('hidden');
+                        loadAdminReport();
+                    } else {
+                        await syncUserStatus();
                     }
-                    await syncUserStatus();
-                }
-            } catch (e) { 
-                console.error("Connection/Runtime error:", e);
-                showToast("Connection Error", "error"); 
-            }
+                } else showToast(result.message || "Invalid Name or Password", "error");
+            } catch (e) { showToast("Connection Error", "error"); }
             finally { btn.disabled = false; btn.innerHTML = '<i data-lucide="user"></i> Login'; lucide.createIcons(); }
         }
 
         async function syncUserStatus() {
+            if (!currentUser) return;
             try {
-                const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
-                console.log("Current Auth User:", user);
-                
-                if (userError || !user) {
-                    console.log("No active user session found.");
-                    if (localStorage.getItem('kollel_user')) logout();
-                    return;
-                }
-
-                // Get profile details
-                const { data: profile, error: profileError } = await supabaseClient
-                    .from('profiles')
-                    .select('*')
-                    .eq('id', user.id)
-                    .single();
-
-                if (profileError || !profile) { 
-                    console.error("Profile fetch error:", profileError);
-                    showToast("User profile not found", "error");
-                    // Don't logout immediately, maybe it's just a fetch error
-                    return; 
-                }
-
-                if (!profile.is_active) { 
-                    showToast("Account is inactive", "error"); 
-                    logout(); 
-                    return; 
-                }
-                
-                currentUser = profile;
-                isAdmin = profile.is_admin;
-                localStorage.setItem('kollel_user', JSON.stringify(currentUser));
-                
-                console.log("Profile Sync Complete. Admin:", isAdmin);
-                
-                document.getElementById('loginSection').classList.add('hidden');
-                
-                if (isAdmin) {
-                    document.getElementById('adminSection').classList.remove('hidden');
-                    document.getElementById('dashboardSection').classList.add('hidden');
-                    document.getElementById('adminConsoleTitle').innerText = currentUser.name;
-                    loadAdminReport();
-                } else {
+                const user = await apiRequestJSONP('getUser', { userId: currentUser.userId });
+                if (user && user.userName) {
+                    user.password = currentUser.password; // Preserve password from localStorage
+                    user.isAdmin = currentUser.isAdmin; // Preserve admin status
+                    currentUser = user;
+                    localStorage.setItem('kollel_user', JSON.stringify(currentUser));
+                    
+                    document.getElementById('loginSection').classList.add('hidden');
                     document.getElementById('dashboardSection').classList.remove('hidden');
-                    document.getElementById('adminSection').classList.add('hidden');
-                    document.getElementById('userNameDisplay').innerText = currentUser.name;
+                    document.getElementById('userNameDisplay').innerText = currentUser.userName;
                     document.getElementById('currentDate').innerText = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
-                }
+                    document.getElementById('dailyTotalDisplay').innerText = formatMinsReadable(user.dailyTotal);
 
-                // Check for active session
-                const { data: activeSession } = await supabaseClient
-                    .from('sessions')
-                    .select('*')
-                    .eq('user_id', user.id)
-                    .is('end_time', null)
-                    .order('created_at', { ascending: false })
-                    .limit(1)
-                    .maybeSingle();
-
-                if (activeSession) {
-                    console.log("Open session found:", activeSession);
-                    try {
-                        // Use created_at as the source of truth for the timer
-                        // This is a standard UTC timestamp and is much more reliable
-                        startTime = new Date(activeSession.created_at);
-                        
-                        console.log("Timer Synced with Database. Created At:", startTime);
-                        
+                    if (user.activeStartTime) {
+                        startTime = new Date(user.activeStartTime);
+                        localStorage.setItem('kollel_start_time', startTime.getTime().toString());
                         if (timerInterval) clearInterval(timerInterval);
                         timerInterval = setInterval(updateTimerDisplay, 1000);
                         updateTimerDisplay();
                         updateUI(true);
-                    } catch (err) {
-                        console.error("Timer reconstruction failed:", err);
-                        startTime = new Date();
-                        updateUI(true);
+                    } else {
+                        startTime = null;
+                        if (timerInterval) clearInterval(timerInterval);
+                        localStorage.removeItem('kollel_start_time');
+                        document.getElementById('timerDisplay').innerText = "00:00:00";
+                        updateUI(false);
                     }
+                    loadReport();
                 } else {
-                    startTime = null;
-                    if (timerInterval) clearInterval(timerInterval);
-                    document.getElementById('timerDisplay').innerText = "00:00:00";
-                    updateUI(false);
+                    logout();
                 }
-                
-                await refreshUserTotals();
-                if (!isAdmin) loadReport();
-            } catch (e) { console.error("Sync failed heavily:", e); }
-        }
-
-        async function refreshUserTotals() {
-            if (!currentUser) return;
-            const now = new Date();
-            const todayStr = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
-            const monthStart = todayStr.substring(0, 7) + "-01";
-            
-            // Today's total
-            const { data: todaySess } = await supabaseClient
-                .from('sessions')
-                .select('duration_minutes')
-                .eq('user_id', currentUser.id)
-                .eq('date', todayStr);
-            
-            const todayTotal = (todaySess || []).reduce((acc, s) => acc + (s.duration_minutes || 0), 0);
-            document.getElementById('dailyTotalDisplay').innerText = formatMinsReadable(todayTotal);
-            currentUser.dailyTotal = todayTotal;
-
-            // Month total
-            const { data: monthSess } = await supabaseClient
-                .from('sessions')
-                .select('duration_minutes')
-                .eq('user_id', currentUser.id)
-                .gte('date', monthStart);
-            
-            const monthTotal = (monthSess || []).reduce((acc, s) => acc + (s.duration_minutes || 0), 0);
-            document.getElementById('headerMonthTotal').innerText = (monthTotal / 60).toFixed(2) + "h";
+            } catch (e) { console.error("Sync failed", e); }
         }
 
         function switchTab(tab) {
+            // Reset manual form state if navigating away from the manual/edit tab
             if (tab !== 'manual') resetManualForm();
+
             const tabs = ['attendance', 'manual', 'reports', 'settings'];
             tabs.forEach(t => {
-                const section = document.getElementById(t + 'Section');
-                if (section) section.classList.add('hidden');
+                document.getElementById(t + 'Section').classList.add('hidden');
                 const btn = document.getElementById('tab-' + t);
                 if (btn) btn.className = "flex-1 py-3.5 text-xs font-bold rounded-2xl transition-all z-10 text-slate-400 hover:text-slate-600";
             });
             const activeBtn = document.getElementById('tab-' + tab);
             if (activeBtn) activeBtn.className = "flex-1 py-3.5 text-xs font-bold rounded-2xl transition-all z-10 text-white btn-primary";
-            const targetSection = document.getElementById(tab + 'Section');
-            if (targetSection) targetSection.classList.remove('hidden');
+            document.getElementById(tab + 'Section').classList.remove('hidden');
             
             if (tab === 'manual' && !editingRow) resetManualForm();
             if (tab === 'settings') { 
-                document.getElementById('settingName').value = currentUser.name;
-                document.getElementById('settingIdText').innerText = "#" + currentUser.id.substring(0, 8);
-                document.getElementById('settingPassword').value = "";
+                document.getElementById('settingName').value = currentUser.userName;
+                document.getElementById('settingId').value = currentUser.userId;
+                document.getElementById('settingPassword').value = currentUser.password || "";
             }
             if (tab === 'reports') loadReport();
             lucide.createIcons();
         }
 
+        async function refreshUserStatus() {
+            if (!currentUser) return;
+            try {
+                const user = await apiRequestJSONP('getUser', { userId: currentUser.userId });
+                if (user) {
+                    currentUser.dailyTotal = user.dailyTotal;
+                    document.getElementById('dailyTotalDisplay').innerText = formatMinsReadable(user.dailyTotal);
+                }
+            } catch (e) {}
+        }
+
         async function loadReport() {
             const m = document.getElementById('reportMonth').value;
             const y = document.getElementById('reportYear').value;
-            const startDate = `${y}-${m}-01`;
-            const endDate = new Date(y, m, 0).toISOString().split('T')[0];
-            
+            const monthKey = `${y}-${m}`;
             const list = document.getElementById('reportEntriesList');
             list.innerHTML = `<div class="p-20 text-center animate-spin"><i data-lucide="loader-2" class="mx-auto text-primary"></i></div>`;
             lucide.createIcons();
-            
             try {
-                const { data: entries, error } = await supabaseClient
-                    .from('sessions')
-                    .select('*')
-                    .eq('user_id', currentUser.id)
-                    .gte('date', startDate)
-                    .lte('date', endDate)
-                    .order('date', { ascending: false })
-                    .order('start_time', { ascending: false });
-
-                if (error) throw error;
-
-                const totalMin = entries.reduce((acc, e) => acc + (e.duration_minutes || 0), 0);
-                document.getElementById('reportTotalHours').innerHTML = `${(totalMin / 60).toFixed(2)} <span class="text-xs font-bold text-slate-400 ml-1">HRS</span>`;
-                
-                if (!entries.length) { 
-                    list.innerHTML = `<div class="glass-panel p-10 rounded-[2.5rem] text-center text-slate-400 font-bold text-xs uppercase tracking-widest">No Logs Found</div>`; 
-                    return; 
-                }
-
+                const data = await apiRequestJSONP('getUserReport', { userId: currentUser.userId, monthKey });
+                document.getElementById('reportTotalHours').innerHTML = `${data.totalHours || '0.00'} <span class="text-xs font-bold text-slate-400 ml-1">HRS</span>`;
+                document.getElementById('headerMonthTotal').innerText = (data.totalHours || 0) + "h";
+                if (!data.entries?.length) { list.innerHTML = `<div class="glass-panel p-10 rounded-[2.5rem] text-center text-slate-400 font-bold text-xs uppercase tracking-widest">No Logs Found</div>`; return; }
+                // Group entries by date
                 const grouped = {};
-                entries.forEach(e => {
+                data.entries.forEach(e => {
+                    // Force parsing as local date to avoid timezone shifting
                     const parts = e.date.split('-');
                     const localDate = new Date(parts[0], parts[1] - 1, parts[2]);
                     const k = localDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+                    
                     if (!grouped[k]) grouped[k] = { date: k, duration: 0, entries: [] };
-                    grouped[k].duration += (e.duration_minutes || 0);
+                    grouped[k].duration += parseInt(e.duration || 0);
                     grouped[k].entries.push(e);
                 });
-
                 list.innerHTML = Object.values(grouped).map(day => `
                     <div class="glass-panel rounded-[2rem] overflow-hidden">
                         <div class="px-6 py-4 flex justify-between items-center bg-slate-50/30 border-b border-slate-100/50">
@@ -685,17 +591,19 @@
                             <span class="text-[9px] font-black bg-white px-3 py-1.5 rounded-xl shadow-sm border border-slate-100 text-primary">${formatMinsReadable(day.duration)}</span>
                         </div>
                         <div class="p-3 space-y-2">
-                            ${day.entries.map(e => `
+                            ${day.entries.map(e => {
+                                const entryJson = JSON.stringify(e).replace(/'/g, "\\'");
+                                return `
                                 <div class="flex justify-between items-center p-4 bg-white/40 rounded-2xl group transition-all">
                                     <div class="flex flex-col">
-                                        <span class="text-[11px] font-bold text-slate-700 uppercase tracking-tight">${formatTimeAMPM(e.start_time)} — ${formatTimeAMPM(e.end_time)}</span>
-                                        <span class="text-[9px] font-black text-slate-300 uppercase mt-0.5">${formatMinsReadable(e.duration_minutes)}</span>
+                                        <span class="text-[11px] font-bold text-slate-700 uppercase tracking-tight">${formatTime(e.start)} — ${formatTime(e.end)}</span>
+                                        <span class="text-[9px] font-black text-slate-300 uppercase mt-0.5">${formatMinsReadable(e.duration)}</span>
                                     </div>
-                                    <div class="flex gap-2 transition-all">
-                                        <button onclick='openEdit(${JSON.stringify(e)})' class="w-10 h-10 bg-indigo-50 text-primary rounded-xl flex items-center justify-center"><i data-lucide="edit-3" class="w-4 h-4"></i></button>
-                                        <button onclick="handleDelete('${e.id}')" class="w-10 h-10 bg-rose-50 text-rose-500 rounded-xl flex items-center justify-center"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                                    <div class="flex gap-2 opacity-0 group-hover:opacity-100 transition-all">
+                                        <button onclick='openEdit(${entryJson})' class="w-10 h-10 bg-indigo-50 text-primary rounded-xl flex items-center justify-center"><i data-lucide="edit-3" class="w-4 h-4"></i></button>
+                                        <button onclick="handleDelete('${e.monthKey}', ${e.rowIndex})" class="w-10 h-10 bg-rose-50 text-rose-500 rounded-xl flex items-center justify-center"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
                                     </div>
-                                </div>`).join('')}
+                                </div>`;}).join('')}
                         </div>
                     </div>`).join('');
                 lucide.createIcons();
@@ -708,34 +616,36 @@
             if (!newName) return showToast("Enter Name", "error");
             
             const btn = document.getElementById('updateProfileBtn');
+            const oldId = currentUser.userId;
             btn.disabled = true; btn.innerText = "Updating...";
             try {
-                // Update profile name
-                const { error: profileError } = await supabaseClient
-                    .from('profiles')
-                    .update({ name: newName })
-                    .eq('id', currentUser.id);
-
-                if (profileError) throw profileError;
-
-                // Update password if provided
-                if (newPassword) {
-                    if (newPassword.length < 6) throw new Error("Password must be at least 6 characters");
-                    const { error: authError } = await supabaseClient.auth.updateUser({ password: newPassword });
-                    if (authError) throw authError;
-                }
-
-                currentUser.name = newName;
-                localStorage.setItem('kollel_user', JSON.stringify(currentUser));
-                document.getElementById('userNameDisplay').innerText = newName;
-                showToast("Profile Updated"); 
-                switchTab('attendance');
-            } catch (e) { 
-                console.error(e);
-                showToast(e.message || "Failed to update", "error"); 
-            }
+                const res = await apiRequestJSONP('updateUser', { oldId: oldId, newName: newName, newPassword: newPassword });
+                if (res.success) {
+                    currentUser.userName = newName;
+                    if (newPassword) currentUser.password = newPassword;
+                    localStorage.setItem('kollel_user', JSON.stringify(currentUser));
+                    document.getElementById('userNameDisplay').innerText = newName;
+                    showToast("Profile Updated"); 
+                    switchTab('attendance');
+                } else showToast(res.message || "Failed", "error");
+            } catch (e) { showToast("Connection Error", "error"); }
             finally { btn.disabled = false; btn.innerText = "Update Profile"; }
         }
+
+        const formatTimeForInput = (t) => {
+            if (!t) return "";
+            const s = t.toString().trim();
+            // Match HH:mm from strings like "05:19", "05:19 AM", or "2024-04-24T05:19:00"
+            const match = s.match(/(\d{1,2}):(\d{2})/);
+            if (match) {
+                let hh = parseInt(match[1]);
+                const mm = match[2];
+                if (s.toLowerCase().includes('pm') && hh < 12) hh += 12;
+                if (s.toLowerCase().includes('am') && hh === 12) hh = 0;
+                return hh.toString().padStart(2, '0') + ":" + mm;
+            }
+            return "";
+        };
 
         function adjustTime(id, mins) {
             const el = document.getElementById(id);
@@ -746,10 +656,21 @@
         }
 
         function openEdit(entry) {
-            editingRow = entry;
-            document.getElementById('manualDate').value = entry.date;
-            document.getElementById('manualStart').value = formatTime(entry.start_time);
-            document.getElementById('manualEnd').value = formatTime(entry.end_time);
+            editingRow = { monthKey: entry.monthKey, rowIndex: entry.rowIndex };
+            
+            if (entry.date) {
+                const dateParts = entry.date.toString().split('T')[0].split(/[-/]/);
+                if (dateParts.length === 3) {
+                    const y = dateParts[0].length === 4 ? dateParts[0] : dateParts[2];
+                    const m = dateParts[0].length === 4 ? dateParts[1] : dateParts[1];
+                    const d = dateParts[0].length === 4 ? dateParts[2] : dateParts[0];
+                    document.getElementById('manualDate').value = `${y}-${m.toString().padStart(2, '0')}-${d.toString().padStart(2, '0')}`;
+                }
+            }
+            
+            document.getElementById('manualStart').value = formatTimeForInput(entry.start);
+            document.getElementById('manualEnd').value = formatTimeForInput(entry.end);
+            
             document.getElementById('manualTitle').innerText = "Edit Record";
             document.getElementById('tab-manual').innerText = "Edit Mode";
             document.getElementById('submitManualBtn').innerHTML = "Save Changes";
@@ -764,69 +685,57 @@
             document.getElementById('manualStart').value = ""; 
             document.getElementById('manualEnd').value = "";
             const now = new Date();
-            // Fix: Construct local date string to avoid UTC/timezone shifting
-            const todayStr = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+            const todayStr = now.toISOString().split('T')[0];
             document.getElementById('manualDate').value = todayStr;
+            document.getElementById('manualDate').max = todayStr; // Prevent future dates
             document.getElementById('submitManualBtn').innerHTML = "Save Entry";
-            document.getElementById('cancelEditBtn').classList.add('hidden');
+            document.getElementById('cancelEditBtn').classList.remove('hidden');
         }
 
         function cancelEdit() { 
-            const wasEditing = !!editingRow;
+            const isEditing = !!editingRow;
             resetManualForm(); 
-            switchTab(wasEditing ? 'reports' : 'attendance'); 
+            switchTab(isEditing ? 'reports' : 'attendance'); 
         }
 
         async function submitManualEntry() {
-            const date = document.getElementById('manualDate').value;
-            const startTimeVal = document.getElementById('manualStart').value;
-            const endTimeVal = document.getElementById('manualEnd').value;
+            const data = { 
+                userId: currentUser.userId, 
+                date: document.getElementById('manualDate').value, 
+                startTime: document.getElementById('manualStart').value, 
+                endTime: document.getElementById('manualEnd').value 
+            };
+            if (!data.date || !data.startTime || !data.endTime) return showToast("Missing Fields", "error");
             
-            if (!date || !startTimeVal || !endTimeVal) return showToast("Missing Fields", "error");
-            if (startTimeVal >= endTimeVal) return showToast("End must be after Start", "error");
+            // 1. Time Sequence Validation
+            if (data.startTime >= data.endTime) return showToast("End must be after Start", "error");
 
-            const startParts = startTimeVal.split(':');
-            const endParts = endTimeVal.split(':');
-            const duration = (parseInt(endParts[0]) * 60 + parseInt(endParts[1])) - (parseInt(startParts[0]) * 60 + parseInt(startParts[1]));
-            
-            const shift = parseInt(startParts[0]) < 12 ? "AM" : "PM";
+            // 2. Future Time Validation
+            const now = new Date();
+            const entryEnd = new Date(data.date + " " + data.endTime);
+            if (entryEnd > now) return showToast("Cannot report future time", "error");
 
             const btn = document.getElementById('submitManualBtn');
             btn.disabled = true;
             try {
-                // Overlap Check
-                if (await checkOverlap(currentUser.id, date, startTimeVal, endTimeVal, editingRow ? editingRow.id : null)) {
-                    showToast("Overlap detected with existing session", "error");
-                    return;
-                }
-
-                let res;
-                if (editingRow) {
-                    res = await supabaseClient.from('sessions').update({
-                        date, start_time: startTimeVal, end_time: endTimeVal, duration_minutes: duration, shift
-                    }).eq('id', editingRow.id);
-                } else {
-                    res = await supabaseClient.from('sessions').insert([{
-                        user_id: currentUser.id, date, start_time: startTimeVal, end_time: endTimeVal, duration_minutes: duration, shift
-                    }]);
-                }
-
-                if (!res.error) { 
-                    showToast(editingRow ? "Record Updated" : "Entry Logged"); 
+                const isEdit = !!editingRow;
+                const res = await apiRequestJSONP(isEdit ? 'editEntry' : 'manualEntry', { ...data, ...editingRow });
+                if (res?.success) { 
+                    showToast(isEdit ? "Record Updated" : "Entry Logged"); 
                     const wasEditing = !!editingRow;
                     resetManualForm(); 
                     await syncUserStatus();
                     switchTab(wasEditing ? 'reports' : 'attendance'); 
-                } else showToast(res.error.message, "error");
+                } else showToast(res.message || "Error", "error");
             } catch (e) { showToast("Failed", "error"); }
             finally { btn.disabled = false; }
         }
 
-        async function handleDelete(id) {
+        async function handleDelete(monthKey, rowIndex) {
             if (await showConfirm("Delete Log", "Permanently remove this entry?", "trash-2")) {
                 try {
-                    const { error } = await supabaseClient.from('sessions').delete().eq('id', id);
-                    if (!error) { showToast("Deleted"); refreshUserTotals(); loadReport(); }
+                    const res = await apiRequestJSONP('deleteEntry', { monthKey, rowIndex });
+                    if (res?.success) { showToast("Deleted"); refreshUserStatus(); loadReport(); }
                 } catch (e) { showToast("Error", "error"); }
             }
         }
@@ -834,82 +743,50 @@
         async function loadAdminReport() {
             const m = document.getElementById('adminMonth').value;
             const y = document.getElementById('adminYear').value;
-            const startDate = `${y}-${m}-01`;
-            const endDate = new Date(y, m, 0).toISOString().split('T')[0];
-            
+            const monthKey = `${y}-${m}`;
             const list = document.getElementById('adminUserList');
             list.innerHTML = `<div class="p-20 text-center animate-pulse text-slate-400 font-black text-xs uppercase tracking-widest">Compiling Global Data...</div>`;
-            
             try {
-                const { data: users } = await supabaseClient.from('profiles').select('id, name');
-                const { data: sessions } = await supabaseClient.from('sessions')
-                    .select('user_id, duration_minutes')
-                    .gte('date', startDate)
-                    .lte('date', endDate);
-
-                const stats = {};
-                users.forEach(u => stats[u.id] = { id: u.id, name: u.name, total: 0 });
-                let globalTotal = 0;
-                (sessions || []).forEach(s => {
-                    if (stats[s.user_id]) {
-                        stats[s.user_id].total += (s.duration_minutes || 0);
-                        globalTotal += (s.duration_minutes || 0);
-                    }
-                });
-
-                document.getElementById('adminGlobalTotal').innerText = (globalTotal / 60).toFixed(2) + "h";
-                
-                const sortedUsers = Object.values(stats).sort((a, b) => b.total - a.total);
-                
-                list.innerHTML = sortedUsers.map(u => `
-                    <div onclick="viewUserDetail('${u.id}', '${u.name}', '${y}-${m}')" class="p-5 bg-slate-50 rounded-2xl border border-slate-100 flex justify-between items-center hover:bg-indigo-50 hover:border-indigo-100 transition-all cursor-pointer">
-                        <div><p class="text-sm font-black text-slate-900">${u.name}</p></div>
-                        <div class="text-right"><p class="text-lg font-black text-slate-900">${(u.total / 60).toFixed(2)}h</p><p class="text-[9px] font-bold text-indigo-400 uppercase tracking-widest">This Month</p></div>
-                    </div>`).join('');
+                const data = await apiRequestJSONP('getAdminReport', { monthKey });
+                document.getElementById('adminGlobalTotal').innerText = (data.globalTotal || "0.00") + "h";
+                list.innerHTML = data.users.map(u => `<div onclick="viewUserDetail('${u.userId}', '${u.userName}', '${monthKey}')" class="p-5 bg-slate-50 rounded-2xl border border-slate-100 flex justify-between items-center hover:bg-indigo-50 hover:border-indigo-100 transition-all cursor-pointer">
+                    <div><p class="text-sm font-black text-slate-900">${u.userName}</p><p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">ID: ${u.userId}</p></div>
+                    <div class="text-right"><p class="text-lg font-black text-slate-900">${u.totalHours}h</p><p class="text-[9px] font-bold text-indigo-400 uppercase tracking-widest">This Month</p></div>
+                </div>`).join('');
             } catch (e) { list.innerHTML = "Failed to load admin data."; }
         }
 
-        async function viewUserDetail(uid, name, monthKey) {
+        async function viewUserDetail(uid, name, month) {
             const overlay = document.getElementById('adminDetailOverlay');
             const list = document.getElementById('adminUserDetailList');
             document.getElementById('detailUserName').innerText = name;
-            document.getElementById('detailMonth').innerText = monthKey;
+            document.getElementById('detailMonth').innerText = month;
             overlay.classList.remove('hidden');
             list.innerHTML = `<div class="p-10 text-center animate-spin"><i data-lucide="loader-2" class="mx-auto text-primary"></i></div>`;
             lucide.createIcons();
-            
             try {
-                const startDate = `${monthKey}-01`;
-                const [y, m] = monthKey.split('-');
-                const endDate = new Date(y, m, 0).toISOString().split('T')[0];
-
-                const { data: entries } = await supabaseClient
-                    .from('sessions')
-                    .select('*')
-                    .eq('user_id', uid)
-                    .gte('date', startDate)
-                    .lte('date', endDate)
-                    .order('date', { ascending: false });
-
-                const totalMin = (entries || []).reduce((acc, e) => acc + (e.duration_minutes || 0), 0);
-                document.getElementById('detailUserTotal').innerText = (totalMin / 60).toFixed(2) + "h";
+                const data = await apiRequestJSONP('getUserReport', { userId: uid, monthKey: month });
+                document.getElementById('detailUserTotal').innerText = data.totalHours + "h";
                 
-                if (!entries?.length) { 
+                if (!data.entries?.length) { 
                     list.innerHTML = `<div class="p-10 text-center text-slate-400 font-bold text-xs uppercase tracking-widest">No Logs Found</div>`; 
                     return; 
                 }
 
+                // Group entries by date
                 const grouped = {};
-                entries.forEach(e => {
+                data.entries.forEach(e => {
+                    // Force parsing as local date to avoid timezone shifting
                     const parts = e.date.split('-');
                     const localDate = new Date(parts[0], parts[1] - 1, parts[2]);
                     const k = localDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+                    
                     if (!grouped[k]) grouped[k] = { date: k, duration: 0, entries: [] };
-                    grouped[k].duration += (e.duration_minutes || 0);
+                    grouped[k].duration += parseInt(e.duration || 0);
                     grouped[k].entries.push(e);
                 });
 
-                list.innerHTML = Object.values(grouped).map(day => `
+                list.innerHTML = Object.values(grouped).reverse().map(day => `
                     <div class="bg-slate-50/50 rounded-[1.5rem] overflow-hidden border border-slate-100/50 mb-4">
                         <div class="px-4 py-2.5 flex justify-between items-center bg-white/60 border-b border-slate-100/50">
                             <span class="text-[10px] font-black text-slate-500 uppercase">${day.date}</span>
@@ -918,8 +795,10 @@
                         <div class="p-2 space-y-1">
                             ${day.entries.map(e => `
                                 <div class="flex justify-between items-center p-3 bg-white/40 rounded-xl">
-                                    <span class="text-[10px] font-bold text-slate-700 uppercase tracking-tight">${formatTimeAMPM(e.start_time)} — ${formatTimeAMPM(e.end_time)}</span>
-                                    <span class="text-[9px] font-black text-slate-300 uppercase">${formatMinsReadable(e.duration_minutes)}</span>
+                                    <div class="flex flex-col">
+                                        <span class="text-[10px] font-bold text-slate-700 uppercase tracking-tight">${formatTime(e.start)} — ${formatTime(e.end)}</span>
+                                    </div>
+                                    <span class="text-[9px] font-black text-slate-300 uppercase">${formatMinsReadable(e.duration)}</span>
                                 </div>`).join('')}
                         </div>
                     </div>`).join('');
@@ -932,30 +811,11 @@
             if (isProcessing) return;
             isProcessing = true;
             try {
-                const now = new Date();
-                // Fix: Use local date string instead of UTC (toISOString)
-                const date = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
-                const time = now.toTimeString().split(' ')[0];
-                const shift = now.getHours() < 12 ? "AM" : "PM";
-
-                // Overlap Check
-                if (await checkOverlap(currentUser.id, date, time, null)) {
-                    showToast("Overlap detected with existing session", "error");
-                    return;
-                }
-
-                const { error } = await supabaseClient.from('sessions').insert([{
-                    user_id: currentUser.id, date, start_time: time, shift
-                }]);
-
-                if (!error) {
-                    // Set startTime locally immediately to prevent negative jump
-                    startTime = now;
-                    if (timerInterval) clearInterval(timerInterval);
-                    timerInterval = setInterval(updateTimerDisplay, 1000);
-                    updateUI(true);
-                    showToast("Session Active");
-                } else showToast(error.message, "error");
+                const res = await apiRequestJSONP('startSession', { userId: currentUser.userId });
+                if (res?.success) {
+                    startTime = new Date(); localStorage.setItem('kollel_start_time', startTime.getTime().toString());
+                    timerInterval = setInterval(updateTimerDisplay, 1000); updateUI(true); showToast("Session Active");
+                } else showToast(res?.message || "Error", "error");
             } catch (e) { showToast("Error", "error"); }
             finally { isProcessing = false; }
         }
@@ -964,52 +824,35 @@
             if (isProcessing) return;
             isProcessing = true;
             try {
-                const { data: activeSession } = await supabaseClient
-                    .from('sessions')
-                    .select('*')
-                    .eq('user_id', currentUser.id)
-                    .is('end_time', null)
-                    .single();
-
-                if (!activeSession) throw new Error("No active session");
-
-                const now = new Date();
-                const endTime = now.toTimeString().split(' ')[0];
-                
-                const [sh, sm] = activeSession.start_time.split(':');
-                const startTotalMins = parseInt(sh) * 60 + parseInt(sm);
-                const endTotalMins = now.getHours() * 60 + now.getMinutes();
-                const duration = Math.max(1, endTotalMins - startTotalMins);
-
-                const { error } = await supabaseClient.from('sessions')
-                    .update({ end_time: endTime, duration_minutes: duration })
-                    .eq('id', activeSession.id);
-
-                if (!error) {
-                    await syncUserStatus();
-                    showToast("Session Logged: " + duration + "m");
-                } else showToast(error.message, "error");
+                const res = await apiRequestJSONP('endSession', { userId: currentUser.userId });
+                if (res?.success) {
+                    clearInterval(timerInterval); localStorage.removeItem('kollel_start_time');
+                    document.getElementById('timerDisplay').innerText = "00:00:00";
+                    updateUI(false); showToast("Session Logged: " + res.duration + "m");
+                    refreshUserStatus(); loadReport();
+                } else showToast(res?.message || "Error", "error");
             } catch (e) { showToast("Error", "error"); }
             finally { isProcessing = false; }
         }
 
         function updateTimerDisplay() {
             if (!startTime) return;
-            const now = new Date();
-            let d = now - startTime;
-            
-            // If somehow the clock is ahead or parsing was off, don't show negative
-            if (d < 0) d = 0;
-            
+            const d = new Date() - startTime;
             const pad = (n) => n.toString().padStart(2, '0');
             const h = Math.floor(d / 3600000);
             const m = Math.floor((d % 3600000) / 60000);
             const s = Math.floor((d % 60000) / 1000);
-            document.getElementById('timerDisplay').innerText = `${pad(h)}:${pad(m)}:${pad(s)}`;
+            
+            if (d < 0) {
+                document.getElementById('timerDisplay').innerText = "00:00:00";
+            } else {
+                document.getElementById('timerDisplay').innerText = `${pad(h)}:${pad(m)}:${pad(s)}`;
+            }
 
             if (currentUser) {
-                const sessionMins = Math.floor(d / 60000);
-                document.getElementById('dailyTotalDisplay').innerText = formatMinsReadable((currentUser.dailyTotal || 0) + sessionMins);
+                const currentSessionMins = Math.max(0, Math.floor(d / 60000));
+                const totalMins = (parseInt(currentUser.dailyTotal) || 0) + currentSessionMins;
+                document.getElementById('dailyTotalDisplay').innerText = formatMinsReadable(totalMins);
             }
         }
 
@@ -1032,29 +875,7 @@
         function formatMinsReadable(m) { const val = parseInt(m) || 0; const h = Math.floor(val / 60); const mins = val % 60; return h > 0 ? `${h}h ${mins}m` : `${mins}m`; }
         function logout() { localStorage.clear(); location.reload(); }
 
-        async function checkOverlap(userId, date, startStr, endStr, excludeId = null) {
-            const startMins = (t) => { const [h, m] = t.split(':').map(Number); return h * 60 + m; };
-            const newS = startMins(startStr);
-            const newE = endStr ? startMins(endStr) : (new Date().getHours() * 60 + new Date().getMinutes());
-
-            const { data: sessions } = await supabaseClient
-                .from('sessions')
-                .select('*')
-                .eq('user_id', userId)
-                .eq('date', date);
-
-            for (const s of (sessions || [])) {
-                if (excludeId && s.id === excludeId) continue;
-                
-                const sS = startMins(s.start_time);
-                // If session is open, use current time as end for overlap check
-                const sE = s.end_time ? startMins(s.end_time) : (new Date().getHours() * 60 + new Date().getMinutes());
-
-                // Overlap logic: (StartA < EndB) AND (EndA > StartB)
-                if (newS < sE && newE > sS) return true;
-            }
-            return false;
-        }
+        // --- Admin User Management Logic ---
 
         function switchAdminTab(tab) {
             const tabs = ['reports', 'users'];
@@ -1076,38 +897,36 @@
             const list = document.getElementById('userManagementList');
             list.innerHTML = `<div class="p-20 text-center animate-pulse text-slate-400 font-black text-xs uppercase tracking-widest">Loading Users...</div>`;
             try {
-                const { data: users, error } = await supabaseClient.from('profiles').select('*').order('id', { ascending: true });
-                if (error) throw error;
+                const data = await apiRequestJSONP('listAllUsers', { adminId: currentUser.userId });
+                if (!data.success) return showToast(data.message, "error");
 
-                list.innerHTML = users.map(u => {
-                    const isSelf = u.id === currentUser.id;
-                    const statusClass = u.is_active ? 'text-emerald-500 bg-emerald-50' : 'text-slate-400 bg-slate-100';
+                list.innerHTML = data.users.map(u => {
+                    const isSelf = u.userId.toString() === currentUser.userId.toString();
+                    const statusClass = u.isActive ? 'text-emerald-500 bg-emerald-50' : 'text-slate-400 bg-slate-100';
+                    const userJson = JSON.stringify(u).replace(/'/g, "\\'");
+                    
                     return `
                     <div class="p-5 bg-white border border-slate-100 rounded-2xl flex justify-between items-center shadow-sm">
                         <div class="flex items-center gap-4">
-                            <div class="w-12 h-12 rounded-xl flex items-center justify-center ${u.is_admin ? 'bg-indigo-50 text-primary' : 'bg-slate-50 text-slate-400'}">
-                                <i data-lucide="${u.is_admin ? 'shield-check' : 'user'}" class="w-6 h-6"></i>
+                            <div class="w-12 h-12 rounded-xl flex items-center justify-center ${u.isAdmin ? 'bg-indigo-50 text-primary' : 'bg-slate-50 text-slate-400'}">
+                                <i data-lucide="${u.isAdmin ? 'shield-check' : 'user'}" class="w-6 h-6"></i>
                             </div>
                             <div>
-                                <p class="text-sm font-black text-slate-900">${u.name} ${isSelf ? '<span class="text-[9px] bg-slate-100 px-2 py-0.5 rounded-full ml-1 uppercase text-slate-400">You</span>' : ''}</p>
+                                <p class="text-sm font-black text-slate-900">${u.userName} ${isSelf ? '<span class="text-[9px] bg-slate-100 px-2 py-0.5 rounded-full ml-1 uppercase text-slate-400">You</span>' : ''}</p>
                                 <div class="flex items-center gap-2 mt-0.5">
-                                    <span class="text-[9px] font-bold uppercase tracking-widest ${statusClass} px-2 py-0.5 rounded-md">${u.is_active ? 'Active' : 'Inactive'}</span>
+                                    <span class="text-[9px] font-bold uppercase tracking-widest ${statusClass} px-2 py-0.5 rounded-md">${u.isActive ? 'Active' : 'Inactive'}</span>
+                                    <span class="text-[9px] font-bold text-slate-300 uppercase tracking-widest">ID: ${u.userId}</span>
                                 </div>
                             </div>
                         </div>
                         <div class="flex gap-2">
-                            <button onclick='openUserModal(${JSON.stringify(u).replace(/'/g, "&apos;")})' class="w-10 h-10 bg-slate-50 text-slate-400 rounded-xl flex items-center justify-center hover:bg-indigo-50 hover:text-primary transition-all"><i data-lucide="edit-3" class="w-4 h-4"></i></button>
-                            <button onclick="handleToggleUserStatus('${u.id}', ${u.is_active})" 
+                            <button onclick='openUserModal(${userJson})' class="w-10 h-10 bg-slate-50 text-slate-400 rounded-xl flex items-center justify-center hover:bg-indigo-50 hover:text-primary transition-all"><i data-lucide="edit-3" class="w-4 h-4"></i></button>
+                            <button onclick="handleToggleUserStatus('${u.userId}', ${u.isActive})" 
                                     ${isSelf ? 'disabled' : ''} 
                                     class="w-10 h-10 rounded-xl flex items-center justify-center transition-all 
-                                    ${u.is_active ? 'bg-rose-50 text-rose-500 hover:bg-rose-100' : 'bg-emerald-50 text-emerald-500 hover:bg-emerald-100'} 
+                                    ${u.isActive ? 'bg-rose-50 text-rose-500 hover:bg-rose-100' : 'bg-emerald-50 text-emerald-500 hover:bg-emerald-100'} 
                                     disabled:opacity-20 disabled:grayscale">
-                                <i data-lucide="${u.is_active ? 'user-minus' : 'user-check'}" class="w-4 h-4"></i>
-                            </button>
-                            <button onclick="handleHardDeleteUser('${u.id}', '${u.name}')"
-                                    ${isSelf ? 'disabled' : ''}
-                                    class="w-10 h-10 bg-slate-50 text-rose-500 rounded-xl flex items-center justify-center hover:bg-rose-500 hover:text-white transition-all disabled:opacity-20">
-                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                <i data-lucide="${u.isActive ? 'user-minus' : 'user-check'}" class="w-4 h-4"></i>
                             </button>
                         </div>
                     </div>`;
@@ -1119,29 +938,16 @@
         function openUserModal(user = null) {
             const overlay = document.getElementById('userModalOverlay');
             const content = document.getElementById('userModalContent');
+            const title = document.getElementById('userModalTitle');
             
-            // Handle User ID display
-            const idDisplay = document.getElementById('manageUserIdDisplayContainer');
-            const emailCont = document.getElementById('manageUserEmailContainer');
-            const passCont = document.getElementById('manageUserPasswordContainer');
+            // Reset form
+            document.getElementById('manageUserId').value = user ? user.userId : "";
+            document.getElementById('manageUserName').value = user ? user.userName : "";
+            document.getElementById('manageUserPassword').value = user ? user.password : "";
+            document.getElementById('manageUserIsAdmin').checked = user ? user.isAdmin : false;
+            document.getElementById('manageUserIsAdmin').disabled = false; // Enabled, backend handles safety
             
-            if (user) {
-                idDisplay.classList.remove('hidden');
-                document.getElementById('manageUserIdDisplay').innerText = "#" + user.id.substring(0, 8);
-                emailCont.classList.add('hidden'); // Email/Password update needs Edge Function
-                passCont.classList.add('hidden');
-            } else {
-                idDisplay.classList.add('hidden');
-                emailCont.classList.remove('hidden');
-                passCont.classList.remove('hidden');
-            }
-
-            document.getElementById('manageUserId').value = user ? user.id : "";
-            document.getElementById('manageUserName').value = user ? user.name : "";
-            document.getElementById('manageUserEmail').value = user ? user.email || "" : "";
-            document.getElementById('manageUserPassword').value = "";
-            document.getElementById('manageUserIsAdmin').checked = user ? user.is_admin : false;
-            document.getElementById('userModalTitle').innerText = user ? "Edit User" : "Add New User";
+            title.innerText = user ? "Edit User" : "Add New User";
             overlay.classList.remove('hidden');
             setTimeout(() => { content.classList.remove('scale-90', 'opacity-0'); content.classList.add('scale-100', 'opacity-100'); }, 10);
             lucide.createIcons();
@@ -1156,76 +962,38 @@
         }
 
         async function handleSaveUser() {
-            const id = document.getElementById('manageUserId').value;
-            const name = document.getElementById('manageUserName').value.trim();
-            const email = document.getElementById('manageUserEmail').value.trim();
-            const password = document.getElementById('manageUserPassword').value.trim();
-            const is_admin = document.getElementById('manageUserIsAdmin').checked;
+            const userData = {
+                userId: document.getElementById('manageUserId').value,
+                userName: document.getElementById('manageUserName').value.trim(),
+                password: document.getElementById('manageUserPassword').value.trim(),
+                isAdmin: document.getElementById('manageUserIsAdmin').checked
+            };
 
-            if (!name) return showToast("Name required", "error");
+            if (!userData.userName || !userData.password) return showToast("Name and Password required", "error");
 
             const btn = document.getElementById('saveUserBtn');
             btn.disabled = true; btn.innerText = "Saving...";
             try {
-                if (id) {
-                    // Update existing profile (only name and admin status)
-                    const { error } = await supabaseClient.from('profiles').update({ name, is_admin }).eq('id', id);
-                    if (error) throw error;
-                    showToast("User Updated");
-                } else {
-                    // Create new Auth user
-                    if (!email || !password) throw new Error("Email and Password required");
-                    if (password.length < 6) throw new Error("Password must be at least 6 characters");
-                    
-                    const { data, error } = await supabaseClient.auth.signUp({
-                        email, password,
-                        options: { data: { name, is_admin } }
-                    });
-                    
-                    if (error) throw error;
-                    showToast("User Created! Note: You have been logged in as the new user.");
-                    // Since signUp automatically logs the new user in, we force a reload
-                    setTimeout(() => location.reload(), 2000);
-                    return;
-                }
-                closeUserModal();
-                loadUserManagement();
-            } catch (e) { 
-                console.error(e);
-                showToast(e.message || "Error saving user", "error"); 
-            }
+                const res = await apiRequestJSONP('saveUser', { adminId: currentUser.userId, userData: userData });
+                if (res.success) {
+                    showToast(userData.userId ? "User Updated" : "User Added");
+                    closeUserModal();
+                    loadUserManagement();
+                } else showToast(res.message || "Failed", "error");
+            } catch (e) { showToast("Error", "error"); }
             finally { btn.disabled = false; btn.innerText = "Save User"; }
         }
 
-        async function handleToggleUserStatus(id, currentStatus) {
+        async function handleToggleUserStatus(targetUserId, currentStatus) {
             const action = currentStatus ? "Deactivate" : "Activate";
-            if (await showConfirm(action + " User", `Are you sure?`)) {
+            if (await showConfirm(action + " User", `Are you sure you want to ${action.toLowerCase()} this user?`)) {
                 try {
-                    const { error } = await supabaseClient.from('profiles').update({ is_active: !currentStatus }).eq('id', id);
-                    if (!error) { showToast("Status Updated"); loadUserManagement(); }
+                    const res = await apiRequestJSONP('toggleUserStatus', { adminId: currentUser.userId, targetUserId: targetUserId });
+                    if (res.success) {
+                        showToast(`User ${res.newStatus ? 'Activated' : 'Deactivated'}`);
+                        loadUserManagement();
+                    } else showToast(res.message, "error");
                 } catch (e) { showToast("Error", "error"); }
-            }
-        }
-
-        async function handleHardDeleteUser(id, name) {
-            if (await showConfirm("CRITICAL: Delete User", `This will PERMANENTLY delete ${name}, all their hours, and their login account. This cannot be undone.`, "alert-triangle")) {
-                try {
-                    showToast("Deleting user data...", "success");
-                    
-                    // 1. Delete all sessions
-                    const { error: sessionError } = await supabaseClient.from('sessions').delete().eq('user_id', id);
-                    if (sessionError) throw sessionError;
-
-                    // 2. Delete the profile (The DB trigger will handle deleting the Auth/Login record)
-                    const { error: profileError } = await supabaseClient.from('profiles').delete().eq('id', id);
-                    if (profileError) throw profileError;
-
-                    showToast("User fully deleted");
-                    loadUserManagement();
-                } catch (e) {
-                    console.error(e);
-                    showToast(e.message || "Error deleting user", "error");
-                }
             }
         }
     </script>
