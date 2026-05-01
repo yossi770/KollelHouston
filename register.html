@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register | Collel Tracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #0f172a;
+            --surface: rgba(255, 255, 255, 0.9);
+        }
+
+        body {
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            color: var(--secondary);
+        }
+
+        .glass-panel {
+            background: var(--surface);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.7);
+            box-shadow: 0 20px 50px -12px rgba(0, 0, 0, 0.05);
+        }
+
+        .input-field {
+            background: rgba(255, 255, 255, 0.5);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            transition: all 0.2s ease;
+        }
+
+        .input-field:focus {
+            background: white;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+        }
+    </style>
+</head>
+
+<body class="min-h-screen flex items-center justify-center p-6">
+    <div id="toastContainer" class="fixed top-6 left-1/2 -translate-x-1/2 z-[100] space-y-3 w-full max-w-[90%] pointer-events-none"></div>
+
+    <div id="registerForm" class="w-full max-w-md glass-panel rounded-[2.5rem] p-10 space-y-8 animate-up">
+        <div class="text-center">
+            <div class="w-16 h-16 bg-indigo-50 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                <i data-lucide="user-plus" class="w-8 h-8 text-primary"></i>
+            </div>
+            <h1 class="text-3xl font-black text-slate-900 tracking-tight">Create Account</h1>
+            <p class="text-slate-400 mt-2 text-xs font-bold uppercase tracking-widest">Join Collel Tracker</p>
+        </div>
+
+        <div class="space-y-4">
+            <div class="space-y-1.5">
+                <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Full Name</label>
+                <input type="text" id="regName" placeholder="Enter your full name" class="w-full p-4 input-field rounded-xl font-bold text-slate-900">
+            </div>
+            <div class="space-y-1.5">
+                <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Email Address</label>
+                <input type="email" id="regEmail" placeholder="you@example.com" class="w-full p-4 input-field rounded-xl font-bold text-slate-900">
+            </div>
+            <div class="space-y-1.5">
+                <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Password</label>
+                <input type="password" id="regPassword" placeholder="Minimum 8 characters" class="w-full p-4 input-field rounded-xl font-bold text-slate-900">
+            </div>
+            <div class="space-y-1.5">
+                <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Confirm Password</label>
+                <input type="password" id="regConfirmPassword" placeholder="Repeat password" class="w-full p-4 input-field rounded-xl font-bold text-slate-900">
+            </div>
+
+            <button onclick="handleRegister()" id="registerBtn" class="w-full bg-indigo-600 text-white p-5 rounded-2xl font-bold text-lg shadow-xl shadow-indigo-600/20 active:scale-95 transition-all mt-4">
+                Register
+            </button>
+        </div>
+
+        <div class="text-center pt-4 border-t border-slate-100">
+            <p class="text-sm font-medium text-slate-500">Already have an account? <a href="index.html" class="text-primary font-bold hover:underline">Login</a></p>
+        </div>
+    </div>
+
+    <div id="successView" class="w-full max-w-md glass-panel rounded-[2.5rem] p-10 text-center space-y-6 hidden">
+        <div class="w-20 h-20 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-4">
+            <i data-lucide="check-circle" class="w-10 h-10 text-emerald-500"></i>
+        </div>
+        <h2 class="text-3xl font-black text-slate-900">Registration Received!</h2>
+        <p class="text-slate-500 font-medium leading-relaxed">
+            Your application is pending approval. An administrator will review your request shortly.
+        </p>
+        <a href="index.html" class="inline-block w-full bg-slate-900 text-white p-5 rounded-2xl font-bold">Back to Login</a>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        const SUPABASE_URL = "https://cweemcuiscckshwaguap.supabase.co";
+        const SUPABASE_KEY = "sb_publishable_PgqkZoSpS47sC5I1SultfQ_qZBnsnVc";
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        lucide.createIcons();
+
+        function showToast(msg, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `flex items-center gap-4 px-8 py-5 rounded-3xl shadow-2xl border bg-white text-slate-900 border-indigo-100 pointer-events-auto`;
+            if (type === 'error') toast.className = `flex items-center gap-4 px-8 py-5 rounded-3xl shadow-2xl border bg-rose-50 text-rose-900 border-rose-100 pointer-events-auto`;
+            toast.innerHTML = `<span class="text-sm font-extrabold tracking-tight">${msg}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 4000);
+        }
+
+        async function handleRegister() {
+            const name = document.getElementById('regName').value.trim();
+            const email = document.getElementById('regEmail').value.trim();
+            const password = document.getElementById('regPassword').value;
+            const confirm = document.getElementById('regConfirmPassword').value;
+
+            if (!name || !email || !password) return showToast("All fields required", "error");
+            if (password.length < 8) return showToast("Password must be at least 8 characters", "error");
+            if (password !== confirm) return showToast("Passwords do not match", "error");
+
+            const btn = document.getElementById('registerBtn');
+            btn.disabled = true;
+            btn.innerText = "Processing...";
+
+            try {
+                // We use fetch here instead of the Supabase client to avoid 
+                // the automatic 'Authorization' header which causes issues for unauthenticated users
+                const response = await fetch(`${SUPABASE_URL}/functions/v1/register-user`, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'apikey': SUPABASE_KEY
+                    },
+                    body: JSON.stringify({ name, email, password })
+                });
+
+                const result = await response.json();
+                if (!response.ok) throw new Error(result.error || "Registration failed");
+
+                document.getElementById('registerForm').classList.add('hidden');
+                document.getElementById('successView').classList.remove('hidden');
+                lucide.createIcons();
+
+            } catch (e) {
+                showToast(e.message || "Registration failed", "error");
+                btn.disabled = false;
+                btn.innerText = "Register";
+            }
+        }
+    </script>
+</body>
+
+</html>
